@@ -1,0 +1,317 @@
+/* Container-Styling */
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Suchfeld-Styling */
+.searchContainer {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.searchWrapper {
+  position: relative;
+  width: 340px;
+}
+
+.searchInput {
+  padding: 10px 38px 10px 16px;
+  border-radius: 24px;
+  border: 1.5px solid #bcd0ee;
+  width: 100%;
+  font-size: 16px;
+  background: #f8fbff;
+  box-shadow: 0 1px 6px rgba(25,118,210,0.06);
+  outline: none;
+  transition: border 0.2s;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1976d2;
+  pointer-events: none;
+}
+
+/* Tabellen-Styling */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(25,118,210,0.08);
+  background: #fff;
+  overflow: hidden;
+}
+
+.tableHeader {
+  background: #eaf3fb;
+}
+
+.tableHeaderCell {
+  padding: 12px 8px;
+  font-weight: 700;
+  color: #1976d2;
+  border-bottom: 2px solid #bcd0ee;
+}
+
+.tableHeaderCellLast {
+  padding: 12px 8px;
+  border-bottom: 2px solid #bcd0ee;
+}
+
+.tableRow {
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.tableCell {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f4fa;
+}
+
+.tableCellCenter {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f4fa;
+  text-align: center;
+}
+
+.titleLink {
+  color: #1976d2;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.previewButton {
+  color: #1976d2;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #eaf3fb;
+  border: 1px solid #bcd0ee;
+  transition: background 0.15s, border 0.15s;
+  cursor: pointer;
+}
+
+/* Modal-Styling */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  width: 95%;
+  max-width: 900px;
+  max-height: 95vh;
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  position: relative;
+  margin: auto;
+  overflow: hidden;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+}
+
+.postTitle {
+  margin-bottom: 12px;
+  word-break: break-word;
+  font-size: 1.4em;
+  line-height: 1.3;
+}
+
+.statusText {
+  color: #1976d2;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.statusChangeContainer {
+  margin-bottom: 14px;
+}
+
+.statusChangeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.statusLabel {
+  font-weight: 500;
+}
+
+.statusSelect {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #bcd0ee;
+  font-size: 15px;
+  min-width: 150px;
+}
+
+.authorText {
+  margin-bottom: 12px;
+  color: #444;
+}
+
+.descriptionText {
+  margin-bottom: 12px;
+  color: #555;
+}
+
+.contentContainer {
+  margin-bottom: 22px;
+}
+
+.contentContainer b {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.contentPreview {
+  background: #f8fbff;
+  border: 1px solid #bcd0ee;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 6px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 15px;
+}
+
+.contentBlock {
+  margin-bottom: 16px;
+  word-break: break-word;
+}
+
+.contentBlock h2 {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  color: #1976d2;
+  font-size: 1.4em;
+}
+
+.contentBlock h3 {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  color: #2a5885;
+  font-size: 1.2em;
+}
+
+.contentBlock ul, .contentBlock ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+.contentBlock li {
+  margin-bottom: 6px;
+}
+
+.contentBlock table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+}
+
+.contentBlock th, .contentBlock td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.errorMessage {
+  color: #d32f2f;
+  margin-bottom: 10px;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-top: 16px;
+  z-index: 2;
+}
+
+/* Button-Styling */
+.primaryButton {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.successButton {
+  background: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.successButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.dangerButton {
+  background: #d32f2f;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}

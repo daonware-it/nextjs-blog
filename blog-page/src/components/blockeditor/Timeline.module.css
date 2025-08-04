@@ -1,0 +1,120 @@
+.timelineEditorForm {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: #f5f7fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.06);
+  padding: 18px 18px 12px 18px;
+  align-items: flex-end;
+}
+.timelineEditorInput {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1.5px solid #cfd8dc;
+  font-size: 1em;
+  background: #fff;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.timelineEditorInput:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px #e3f2fd;
+  outline: none;
+}
+.timelineEditorButton {
+  padding: 10px 22px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1976d2 60%, #63a4ff 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 1em;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.timelineEditorButton:hover {
+  background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px rgba(25,118,210,0.13);
+}
+.timelineWrapper {
+  padding: 24px 0;
+}
+
+.timelineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  margin-left: 0;
+}
+
+.timelineItem {
+  position: relative;
+  margin-bottom: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timelineItem:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  transform: translateX(-50%);
+  width: 2px;
+  height: calc(100% - 70px);
+  background: #e3f2fd;
+  z-index: 0;
+}
+
+.timelineIcon {
+  display: none;
+}
+
+.timelineContent {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(25,118,210,0.10);
+  padding: 28px 36px 20px 36px;
+  min-width: 260px;
+  max-width: 480px;
+  position: relative;
+  border-left: 6px solid #1976d2;
+  margin-top: 18px;
+}
+
+.timelineYearBadge {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1976d2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1em;
+  padding: 6px 18px;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.13);
+  letter-spacing: 1px;
+  z-index: 2;
+  border: 2px solid #fff;
+}
+
+.timelineTitle {
+  font-size: 1.15em;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.timelineDate {
+  font-size: 0.95em;
+  color: #1976d2;
+  margin-bottom: 6px;
+}
+
+.timelineDescription {
+  font-size: 1em;
+  color: #333;
+}

@@ -1,0 +1,238 @@
+/* Universal box-sizing für konsistentes Layout */
+.loginPageWrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #eff2f5 0%, #f7f9fb 100%);
+  font-family: 'Poppins', 'Inter', Arial, sans-serif;
+  color: #222;
+  line-height: 1.7;
+}
+
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  flex: 1;
+  height: 100%;
+  margin: 60px auto 0 auto;
+}
+
+.loginBox {
+  background-color: #fff;
+  padding: 48px 100px;
+  border-radius: 8px;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+  text-align: center;
+  width: auto;
+  max-width: 600px;
+}
+
+.logo {
+  width: 100px;
+  margin-bottom: 25px;
+}
+
+.heading {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #222;
+  letter-spacing: 1.5px;
+  font-family: 'Poppins', 'Inter', Arial, sans-serif;
+}
+
+.subtitle {
+  font-size: 17px;
+  color: #7f8c8d;
+  margin-bottom: 30px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', 'Poppins', Arial, sans-serif;
+}
+
+.inputGroup {
+  text-align: left;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.inputLabel {
+  display: block;
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 8px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  font-family: 'Inter', 'Poppins', Arial, sans-serif;
+}
+
+.inputField {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 17px;
+  font-family: 'Inter', 'Poppins', Arial, sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputField:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.inputField::placeholder {
+  color: #aaa;
+  opacity: 0.8;
+}
+
+.passwordToggleButton {
+  position: absolute;
+  right: 20px;
+  top: 72%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  width: 28px;
+}
+
+.passwordToggleButton:hover {
+  color: #555;
+}
+
+.formOptions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  font-size: 14px;
+  color: #555;
+  gap: 32px;
+}
+
+.rememberMe {
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+}
+
+.rememberCheckbox {
+  margin-right: 8px;
+  accent-color: #007bff;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.rememberLabel {
+  cursor: pointer;
+  font-weight: 400;
+  color: #555;
+}
+
+.forgotPassword {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.forgotPassword:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.errorMessage {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 12px 0px;
+  background: linear-gradient(to right, #007bff 0%, #0056b3 100%);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Poppins', 'Inter', Arial, sans-serif;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
+}
+
+.loginButton:hover {
+  background: linear-gradient(to right, #0056b3 0%, #004085 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 0.2rem 0.4rem rgba(0,0,0,.1);
+}
+
+.loginButton:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.signupLink {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #555;
+}
+
+.signupAnchor {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.signupAnchor:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+@media (max-width: 480px) {
+  .loginBox {
+    padding: 30px 25px;
+  }
+  .heading {
+    font-size: 24px;
+  }
+  .loginButton {
+    font-size: 15px;
+    padding: 10px 15px;
+  }
+  .inputField {
+    padding: 9px 12px;
+  }
+  .passwordToggleButton {
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+  }
+  .errorMessage {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

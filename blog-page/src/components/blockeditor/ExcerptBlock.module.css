@@ -1,0 +1,26 @@
+.excerptBlock {
+  background: #f5f7fa;
+  border-left: 5px solid #1976d2;
+  border-radius: 10px;
+  padding: 18px 24px;
+  margin: 18px 0;
+  font-style: italic;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.06);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.excerptBlock .icon {
+  font-size: 1.4em;
+  margin-right: 6px;
+}
+.excerptBlock .label {
+  color: #1976d2;
+  font-weight: 700;
+  margin-right: 10px;
+  font-size: 1.05em;
+}
+.excerptBlock .text {
+  flex: 1;
+}

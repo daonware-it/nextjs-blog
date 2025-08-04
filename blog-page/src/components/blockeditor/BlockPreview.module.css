@@ -1,0 +1,325 @@
+.noticeIcon.success {
+  color: #388e3c;
+  border: none;
+}
+.noticeIcon.success::before {
+  content: '✔';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+.noticeIcon.error {
+  color: #d32f2f;
+  border: none;
+}
+.noticeIcon.error::before {
+  content: '✖';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+.noticeIcon.tip {
+  color: #0288d1;
+  border: none;
+}
+.noticeIcon.tip::before {
+  content: '💡';
+  font-size: 2.5em;
+}
+.noticeIcon.important {
+  color: #f57c00;
+  border: none;
+}
+.noticeIcon.important::before {
+  content: '!';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+.noticeIcon.question {
+  color: #512da8;
+  border: none;
+}
+.noticeIcon.question::before {
+  content: '?';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+/* Text für Notice-Block */
+.noticeText {
+  font-size: 1.1em;
+  font-weight: 500;
+  line-height: 3.4;
+  white-space: pre-line;
+}
+/* Größerer Text für Notice-Label */
+.noticeLabel {
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+/* Symbole für Notice-Block */
+.noticeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2em;
+  height: 2.2em;
+  font-size: 1.7em;
+  margin-right: 0px;
+}
+.noticeIcon.info {
+  color: #1976d2;
+  border: none;
+}
+.noticeIcon.info::before {
+  content: 'i';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+.noticeIcon.warning {
+  color: #b71c1c;
+  border: none;
+}
+.noticeIcon.warning::before {
+  content: '!';
+  font-weight: bold;
+  font-size: 2.5em;
+}
+.noticeIcon.hint {
+  color: #ad8b00;
+  border: none;
+}
+.noticeIcon.hint::before {
+  content: '💡';
+  font-size: 2.5em;
+}
+.noticeIcon.spoiler {
+  color: #333;
+  border: none;
+}
+.noticeIcon.spoiler::before {
+  content: '👁';
+  font-size: 2.5em;
+}
+/* Entferne vertikale Abstände von Blockelementen, wenn kein Separator folgt */
+.blockNoSpacing,
+.blockNoSpacing p,
+.blockNoSpacing h2,
+.blockNoSpacing img,
+.blockNoSpacing blockquote,
+.blockNoSpacing .preWrapper {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+/* Abstandsklassen für BlockPreview */
+.blockNoSpacing {
+  margin-bottom: 0 !important;
+}
+
+.blockWithSpacing {
+  margin-bottom: 16px !important;
+}
+/* Stil für Zitat-Block */
+.quoteBlock {
+  border-left: 4px solid #1976d2;
+  margin: 16px 0;
+  padding: 12px 24px;
+  background: #f5f7fa;
+  color: #222;
+  font-style: italic;
+  position: relative;
+  font-size: 1.15em;
+  font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+
+.quoteMark {
+  color: #1976d2;
+  font-size: 2em;
+  vertical-align: top;
+  font-family: serif;
+  margin: 0 4px;
+}
+.preWrapper {
+  background-color: #1e1e1e;
+  border-radius: 6px;
+  margin: 16px 0;
+  position: relative;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+.preWrapper pre {
+  margin: 0;
+  padding: 16px;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  overflow-x: auto;
+}
+
+.preWrapper pre code {
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  background-color: transparent;
+  border-radius: 0;
+  white-space: pre;
+  display: block;
+  color: #d4d4d4;
+}
+
+.languageLabel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #d4d4d4;
+  border-bottom-left-radius: 4px;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Entferne den Standard-Prism-Hintergrund */
+.preWrapper :global(.language-javascript),
+.preWrapper :global(.language-css),
+.preWrapper :global(.language-markup),
+.preWrapper :global(.language-typescript),
+.preWrapper :global(.language-php),
+.preWrapper :global(.language-python),
+.preWrapper :global(.language-java),
+.preWrapper :global(.language-csharp),
+.preWrapper :global(.language-cpp),
+.preWrapper :global(.language-ruby),
+.preWrapper :global(.language-rust),
+.preWrapper :global(.language-go),
+.preWrapper :global(.language-sql),
+.preWrapper :global(.language-bash),
+.preWrapper :global(.language-yaml),
+.preWrapper :global(.language-json),
+.preWrapper :global(.language-markdown),
+.preWrapper :global(.language-plaintext) {
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Anpassungen für Prism Syntax-Highlighting */
+.preWrapper :global(.token.comment),
+.preWrapper :global(.token.prolog),
+.preWrapper :global(.token.doctype),
+.preWrapper :global(.token.cdata) {
+  color: #6a9955;
+}
+
+.preWrapper :global(.token.punctuation) {
+  color: #d4d4d4;
+}
+
+.preWrapper :global(.token.property),
+.preWrapper :global(.token.tag),
+.preWrapper :global(.token.boolean),
+.preWrapper :global(.token.number),
+.preWrapper :global(.token.constant),
+.preWrapper :global(.token.symbol) {
+  color: #b5cea8;
+}
+
+.preWrapper :global(.token.selector),
+.preWrapper :global(.token.string),
+.preWrapper :global(.token.char),
+.preWrapper :global(.token.builtin) {
+  color: #ce9178;
+}
+
+.preWrapper :global(.token.operator),
+.preWrapper :global(.token.entity),
+.preWrapper :global(.token.url),
+.preWrapper :global(.language-css .token.string),
+.preWrapper :global(.style .token.string) {
+  color: #d4d4d4;
+}
+
+.preWrapper :global(.token.atrule),
+.preWrapper :global(.token.attr-value),
+.preWrapper :global(.token.keyword) {
+  color: #569cd6;
+}
+
+.preWrapper :global(.token.function),
+.preWrapper :global(.token.class-name) {
+  color: #dcdcaa;
+}
+
+.preWrapper :global(.token.regex),
+.preWrapper :global(.token.important),
+.preWrapper :global(.token.variable) {
+  color: #d16969;
+}
+
+/* PHP-spezifische Anpassungen */
+.preWrapper :global(.language-php) :global(.token.delimiter),
+.preWrapper :global(.language-php) :global(.token.php) {
+  color: #569cd6; /* PHP-Tags in Blau */
+}
+
+.preWrapper :global(.language-php) :global(.token.function) {
+  color: #dcdcaa; /* Funktionen in Hellgelb */
+}
+
+.preWrapper :global(.language-php) :global(.token.string) {
+  color: #ce9178; /* Strings in Orange */
+}
+
+.preWrapper :global(.language-php) :global(.token.variable) {
+  color: #9cdcfe; /* Variablen in Hellblau */
+}
+
+.preWrapper :global(.language-php) :global(.token.keyword) {
+  color: #569cd6; /* Keywords wie function, echo in Blau */
+}
+
+.preWrapper :global(.language-php) :global(.token.operator) {
+  color: #d4d4d4; /* Operatoren in Hellgrau */
+}
+
+/* Stil für Inhaltsverzeichnis */
+.tableOfContents {
+  background: #f5f7fa;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.tableOfContents h3 {
+  margin: 0 0 12px 0;
+  color: #1976d2;
+  font-size: 1.2em;
+}
+
+.tableOfContents ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tableOfContents li {
+  margin: 8px 0;
+}
+
+.tableOfContents a {
+  color: #333;
+  text-decoration: none;
+  display: block;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+
+.tableOfContents a:hover {
+  color: #1976d2;
+  text-decoration: underline;
+}

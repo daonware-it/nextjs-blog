@@ -1,0 +1,317 @@
+/* Sidebar Styles */
+.sidebar {
+  width: 320px;
+  background: #f7faff;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(25,118,210,0.08);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: fit-content;
+  position: relative;
+  margin-top: 48px;
+  overflow-y: auto; /* Ermöglicht Scrolling */
+  scrollbar-width: thin; /* Schmalere Scrollbar in Firefox */
+}
+
+/* Anpassungen für Webkit-Browser (Chrome, Safari) */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(25,118,210,0.05);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(25,118,210,0.2);
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(25,118,210,0.3);
+}
+
+.sidebarCloseBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.12);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.sidebarOpenBtn {
+  position: fixed;
+  top: 160px;
+  right: 32px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.12);
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.sidebarOpenBtn:hover {
+  background: #1565c0;
+  box-shadow: 0 4px 16px rgba(25,118,210,0.18);
+}
+
+.sidebarArrow {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.createBlogWrapper {
+font-family: 'Poppins', 'Inter', Arial, sans-serif;
+background: #f7f7f7;
+min-height: 100vh;
+width: 100%;
+height: auto;
+}
+
+.createBlogContainer {
+max-width: 1200px;
+height: auto;
+margin: 48px auto;
+background: #f5f7fa;
+border-radius: 20px;
+box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+border: 2px solid #cfd8dc;
+padding: 48px 32px;
+}
+
+.createBlogTitle {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #1976d2;
+  text-align: center;
+}
+
+.createBlogForm {
+display: flex;
+flex-direction: column;
+gap: 24px;
+height: 100%;
+}
+
+.createBlogLabel {
+font-size: 18px;
+color: #444;
+font-weight: 500;
+margin-bottom: 8px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+height: 100%;
+}
+
+.createBlogInput {
+padding: 36px;
+border-radius: 20px;
+border: 2.5px solid #1976d2;
+font-size: 22px;
+font-family: 'Inter', Arial, sans-serif;
+background: #f7faff;
+box-shadow: 0 8px 32px rgba(25, 118, 210, 0.14);
+resize: vertical;
+width: 100%;
+min-height: 400px;
+max-width: 100%;
+box-sizing: border-box;
+}
+
+.createBlogTextarea {
+  margin-top: -16px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 17px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.createBlogBtn {
+  padding: 14px 32px;
+  background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-family: 'Poppins', Arial, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: background 0.2s;
+}
+.createBlogBtn:hover {
+  background: linear-gradient(90deg, #1565c0 60%, #1976d2 100%);
+}
+
+/* Wrapper für die Editiersektion */
+.editorSectionWrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Container für den Editor, um CSS-Scope zu erhalten */
+.editorContainer {
+  position: relative;
+  width: 100%;
+}
+
+/* Editor Ladeansicht - wird vom dynamischen Import verwendet */
+.editorLoading {
+  padding: 24px;
+  text-align: center;
+  color: #888;
+  font-size: 15px;
+  font-weight: 500;
+  background: #f5f7fa;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 300px;
+}
+
+/* Modale Dialoge */
+.aiModal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30,40,60,0.25);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aiModalContent {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(30,40,60,0.18);
+  padding: 28px;
+  min-width: 320px;
+  max-width: 480px;
+  position: relative;
+}
+
+.aiModalErrorContent {
+  text-align: center;
+  padding: 36px;
+  min-width: 320px;
+  max-width: 420px;
+}
+
+.aiErrorTitle {
+  font-weight: 700;
+  font-size: 20px;
+  color: #d32f2f;
+  margin-bottom: 10px;
+}
+
+.aiErrorMessage {
+  color: #d32f2f;
+  margin-bottom: 18px;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.aiErrorButton {
+  background: linear-gradient(90deg,#d32f2f 60%,#ff7043 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 10px 28px;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.aiModalTitle {
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #1976d2;
+}
+
+.aiModalLabel {
+  margin-bottom: 8px;
+  color: #444;
+  margin-top: 16px;
+}
+
+.aiAutoButton {
+  width: 100%;
+  padding: 10px 16px;
+  background: #f5f7fa;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  text-align: left;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #444;
+}
+
+.aiPromptTextarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d0d7de;
+  font-size: 15px;
+  min-height: 80px;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+
+.aiButtonContainer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.aiCancelButton {
+  padding: 8px 16px;
+  background: #eee;
+  color: #444;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.aiSubmitButton {
+  padding: 8px 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.aiSubmitButtonDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

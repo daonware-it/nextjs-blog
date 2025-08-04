@@ -1,0 +1,139 @@
+import * as React from "react";
+import Head from "next/head";
+import styles from "../components/login.module.css";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
+  
+  // Beim Laden der Seite überprüfen, ob es einen Fehlerparameter in der URL gibt
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    
+    if (errorParam === 'banned') {
+      setError('Ihr Konto wurde gesperrt. Bitte kontaktieren Sie den Support.');
+    }
+  }, []);
+  
+  useEffect(() => {
+    if (session) {
+      window.location.href = "/";
+    }
+  }, [session]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+    setLoading(false);
+    if (res?.error) {
+      setError(res.error);
+    } else {
+      window.location.reload();
+    }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Login | DaonWare</title>
+      </Head>
+      <div className={styles.loginPageWrapper}>
+        <Navbar />
+        <div className={styles.loginContainer}>
+          <div className={styles.loginBox}>
+            <h1 className={styles.heading}>DaonWare</h1>
+            <div className={styles.subtitle}>Security & Malware Analyse</div>
+            {error && (
+              <div className={styles.errorMessage}>
+                {error}
+              </div>
+            )}
+            <form onSubmit={handleSubmit}>
+              <div className={styles.inputGroup}>
+                <label htmlFor="email" className={styles.inputLabel}>E-Mail-Adresse</label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="E-Mail-Adresse"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  className={styles.inputField}
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label htmlFor="password" className={styles.inputLabel}>Passwort</label>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Passwort"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className={styles.inputField}
+                />
+                <button
+                  type="button"
+                  className={styles.passwordToggleButton}
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                >
+                  {showPassword ? (
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.383 5 12 5s8.268 2.943 9.542 7c-1.28 4.057-4.931 7-9.542 7S3.732 16.057 2.458 12z"/>
+                    </svg>
+                  ) : (
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.94 17.94A10.05 10.05 0 012.46 12c1.28-4.06 4.93-7 9.54-7a9.96 9.96 0 018.48 4.78"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1l22 22"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <div className={styles.formOptions}>
+                <div className={styles.rememberMe}>
+                  <input type="checkbox" id="remember" className={styles.rememberCheckbox} />
+                  <label htmlFor="remember" className={styles.rememberLabel}>Angemeldet bleiben</label>
+                </div>
+                <a href="/forgot-password" className={styles.forgotPassword}>Passwort vergessen?</a>
+              </div>
+              <button
+                type="submit"
+                className={styles.loginButton}
+                disabled={loading}
+              >
+                {loading ? (
+                  <span>Wird verarbeitet...</span>
+                ) : (
+                  "Anmelden"
+                )}
+              </button>
+            </form>
+            <div className={styles.signupLink}>
+              Noch kein Konto? <a href="/register" className={styles.signupAnchor}>Registrieren</a>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    </>
+  );
+}

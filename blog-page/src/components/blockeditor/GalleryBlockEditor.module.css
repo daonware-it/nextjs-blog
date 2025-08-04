@@ -1,0 +1,80 @@
+.galleryEditorCard {
+  width: 100%;
+  max-width: 96%;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  border: 1.5px solid #e3e7ee;
+  padding: 32px 28px 28px 28px;
+  box-shadow: 0 4px 24px 0 rgba(30,60,90,0.07), 0 1.5px 4px 0 rgba(30,60,90,0.04);
+  transition: box-shadow 0.18s cubic-bezier(.4,0,.2,1), border-color 0.18s cubic-bezier(.4,0,.2,1);
+/* entfernt: überflüssige schließende Klammer */
+
+.galleryEditorCard:hover {
+  box-shadow: 0 8px 32px 0 rgba(30,60,90,0.13), 0 2px 8px 0 rgba(30,60,90,0.08);
+  border-color: #b6c2d2;
+}
+}
+
+.galleryEditorTitle {
+  font-weight: 600;
+  font-size: 18px;
+  color: #1976d2;
+  margin-bottom: 18px;
+}
+
+.galleryEditorRow {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.galleryEditorCol {
+  width: 100%;
+}
+
+.galleryEditorColSmall {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.galleryEditorLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.galleryEditorInput,
+.galleryEditorSelect,
+.galleryEditorTextarea {
+  width: 100%;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #cfd8dc;
+  padding: 6px 8px;
+  font-size: 15px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.galleryEditorTextarea {
+  min-height: 120px;
+  padding: 8px;
+  resize: vertical;
+}
+
+.galleryEditorButton {
+  margin-top: 24px;
+  align-self: flex-start;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 28px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(30,60,90,0.08);
+}

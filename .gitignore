@@ -1,0 +1,90 @@
+# Node
+node_modules/
+dist/
+build/
+.env
+.env.*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VSCode
+.vscode/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+# JetBrains/IDEA
+.idea/
+*.DotSettings.user
+
+# VSCode
+.vscode/
+
+# Next.js
+.next/
+
+# Test/Analyse/CI
+coverage/
+qodana.yaml
+tsc_trace.txt
+tsconfig.tsbuildinfo
+
+# Snyk
+.snyk
+.snyk-whitelist.json
+
+# GitHub
+.github/
+
+# Sonstiges
+logs/
+*.log
+*.tmp
+*.swp
+*.bak
+*.orig
+
+# Types/Temp
+types/
+custom.d.ts
+next-env.d.ts
+
+# Datenbank/Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build/Dist
+dist/
+build/
+
+# Scripts/Tools
+fix-encoding.ps1
+identify_promise_issues.js
+updateDisposableDomains.js
+update-schema.js
+
+
+# Data/Public
+data/
+
+# Sonstige temporäre Dateien
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo

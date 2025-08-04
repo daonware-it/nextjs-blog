@@ -1,0 +1,108 @@
+.codeBlockWrapper {
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  background-color: #f6f8fa;
+  margin: 8px 0;
+}
+
+.codeBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f1f3f5;
+  border-bottom: 1px solid #e1e4e8;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.languageSelect {
+  padding: 4px 8px;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #24292e;
+}
+
+.toggleEditButton {
+  padding: 4px 12px;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  color: #24292e;
+  cursor: pointer;
+}
+
+.toggleEditButton:hover {
+  background-color: #f3f4f6;
+}
+
+.codeBlockContent {
+  position: relative;
+  min-height: 100px;
+}
+
+.codeEditor {
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24292e;
+  background-color: #ffffff;
+  border: none;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  resize: vertical;
+}
+
+.codeEditor:focus {
+  outline: none;
+}
+
+.codePreview {
+  margin: 0;
+  padding: 16px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #24292e;
+  background-color: #ffffff;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  overflow-x: auto;
+}
+
+/* Prism.js Syntax Highlighting Styles */
+.codePreview :global(.token.comment),
+.codePreview :global(.token.prolog),
+.codePreview :global(.token.doctype),
+.codePreview :global(.token.cdata) {
+  color: #998;
+  font-style: italic;
+}
+
+.codePreview :global(.token.function) {
+  color: #dd4a68;
+}
+
+.codePreview :global(.token.string) {
+  color: #690;
+}
+
+.codePreview :global(.token.keyword) {
+  color: #07a;
+}
+
+.codePreview :global(.token.php-tag) {
+  color: #905;
+  font-weight: bold;
+}
+
+.codePreview :global(.token.operator),
+.codePreview :global(.token.punctuation) {
+  color: #999;
+}

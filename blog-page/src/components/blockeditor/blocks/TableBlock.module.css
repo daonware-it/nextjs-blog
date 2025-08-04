@@ -1,0 +1,277 @@
+/* Popover nach unten anzeigen (z.B. bei oberster Zelle) */
+.tableCellPopoverDown {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 10px);
+  background: #fff;
+  border: 2px solid #1976d2;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(25,118,210,0.18);
+  padding: 16px 22px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  z-index: 99999;
+  min-width: 240px;
+  max-width: 90vw;
+  font-size: 15px;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  pointer-events: auto;
+}
+/* Popover für Zellen-Editor */
+.tableCellPopover {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -110%);
+  background: #fff;
+  border: 2px solid #1976d2;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(25,118,210,0.18);
+  padding: 16px 22px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  z-index: 99999;
+  min-width: 240px;
+  max-width: 90vw;
+  font-size: 15px;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  pointer-events: auto;
+}
+.tableToolbar {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fafdff 60%, #eaf1fb 100%);
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.07);
+  z-index: 1;
+}
+
+.tableToolbarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tableToolbarHeading {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0 0 2px 0;
+  padding: 0 0 4px 0;
+  border-bottom: 2px solid rgba(25, 118, 210, 0.15);
+}
+
+.tableToolbarButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.tableBlock {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(208, 215, 222, 0.5);
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.tableBlock thead th {
+  background: #f8f9fa;
+  color: #24292f;
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 2px solid rgba(208, 215, 222, 0.5);
+  padding: 12px 16px;
+  min-width: 120px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.tableBlock thead th:not(:last-child) {
+  border-right: 1px solid rgba(208, 215, 222, 0.3);
+}
+
+.tableBlock tbody tr {
+  transition: all 0.2s ease;
+}
+
+.tableBlock tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.tableBlock tbody tr:nth-child(odd) {
+  background: #fff;
+}
+
+.tableBlock tbody tr:hover {
+  background: rgba(25, 118, 210, 0.04) !important;
+}
+
+.tableBlock td {
+  font-weight: normal;
+  padding: 12px 16px;
+  min-width: 120px;
+  background: inherit;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(208, 215, 222, 0.3);
+  line-height: 1.4;
+  position: relative;
+}
+
+.tableBlock td:not(:last-child) {
+  border-right: 1px solid rgba(208, 215, 222, 0.3);
+}
+
+.tableBlock td.editing {
+  background: rgba(25, 118, 210, 0.04);
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.6) inset;
+  outline: none;
+  cursor: text;
+  padding-bottom: 40px; /* Platz für Controls */
+}
+
+/* Popover-Editor wird inline im TSX gesteuert, keine CSS-Logik mehr nötig */
+
+.tableBlock input[type="text"],
+.tableBlock textarea {
+  width: 100%;
+  font-size: 15px;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  resize: none;
+  color: #24292f;
+  font-family: inherit;
+}
+
+.tableBlock input[type="text"]:focus,
+.tableBlock textarea:focus {
+  background: transparent;
+}
+
+.tableBlock input[type="text"]::placeholder {
+  color: #6e7781;
+  opacity: 0.8;
+}
+
+/* Zusätzliche Styles für den Editor */
+
+.tableBlock label {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #57606a;
+  transition: color 0.2s ease;
+}
+
+.tableBlock label:hover {
+  color: #1976d2;
+}
+
+.tableBlock label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid #d0d7de;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tableBlock select {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1.5px solid #d0d7de;
+  border-radius: 6px;
+  background: #fff;
+  color: #57606a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tableBlock select:hover,
+.tableBlock select:focus {
+  border-color: #1976d2;
+  color: #1976d2;
+  outline: none;
+}
+
+.tableBlockButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1976d2;
+  border: 1px solid #d0d7de;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(25,118,210,0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 100px;
+}
+
+.tableBlockButton:active {
+  background: #e3f2fd;
+  color: #1565c0;
+  box-shadow: 0 1px 3px rgba(25, 118, 210, 0.12);
+  transform: scale(0.98);
+}
+
+.tableBlockButton:hover:not(:disabled) {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #1976d2;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.15);
+}
+
+.tableBlockButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f6f8fa;
+  color: #b0b8c1;
+  box-shadow: none;
+  border-color: #e0e3e6;
+}
+
+
+.tableBlock button:active {
+  background: #e3f2fd;
+  color: #0d47a1;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.12);
+}
+
+
+.tableBlock button:hover:not(:disabled) {
+  background: linear-gradient(90deg, #dbeafe 60%, #e3f2fd 100%);
+  color: #0d47a1;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.13);
+}
+
+.tableBlock button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f6f8fa;
+  color: #b0b8c1;
+  box-shadow: none;
+  transform: none;
+}
