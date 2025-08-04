@@ -34,8 +34,8 @@ Ein flexibles und erweiterbares Blog-System mit Benutzerverwaltung, Admin-Dashbo
 Beispiel-Befehle:
 
 ```bash
-git clone https://github.com/daonware-it/blog-system.git
-cd blog-system/homepage
+git clone https://github.com/daonware-it/nextjs-blog.git
+cd nextjs-blog/blog-page
 [ -f .env.example ] && cp .env.example .env
 nano .env
 npm install
@@ -67,14 +67,14 @@ Aktuelle Version `v0.1.0`
 
 [📋 Zum Entwicklungs-Board (Trello)](https://trello.com/b/WhAYVSHT)
 
-Siehe Github [Releases](https://github.com/daonware-it/blog-system/releases) für den vollständigen Changelog
+Siehe Github [Releases](https://github.com/daonware-it/nextjs-blog/releases) für den vollständigen Changelog
 
 ----
 
 ### 📁 Projektstruktur (Auszug)
 
 ```text
-Release/
+nextjs-blog/
 ├── CONTRIBUTING.md
 ├── README.md
 ├── docs/
@@ -85,7 +85,7 @@ Release/
 │   ├── installation.md
 │   ├── roadmap.md
 │   └── troubleshooting.md
-├── homepage/
+├── blog-page/
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── next-env.d.ts

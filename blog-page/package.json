@@ -1,4 +1,7 @@
 {
+  "name": "nextjs-blog-platform",
+  "version": "0.1.0",
+  "description": "Blog platform with admin system, AI & 2FA",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

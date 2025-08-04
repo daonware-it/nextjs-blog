@@ -82,6 +82,9 @@ update-schema.js
 # Data/Public
 data/
 
+# Release-Skripte Backup-Dateien
+*.bak
+
 # Sonstige temporäre Dateien
 *.tmp
 *.temp
