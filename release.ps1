@@ -1,7 +1,4 @@
-# Release-Skript für das Blog-System (PowerShell)
-# Verwendung: .\release.ps1 [major|minor|patch]
-
-param(
+﻿param(
     [ValidateSet("major", "minor", "patch")]
     [string]$VersionType = "patch"
 )
@@ -23,7 +20,7 @@ function Write-Error {
 }
 
 # Prüfe ob Git clean ist
-$gitStatus = git status --porcelain
+$gitStatus = & git status --porcelain
 if ($gitStatus) {
     Write-Error "Git working directory ist nicht sauber. Bitte committen Sie alle Änderungen zuerst."
     exit 1
@@ -75,7 +72,9 @@ $packageJson | ConvertTo-Json -Depth 100 | Set-Content "blog-page\package.json"
 # README.md aktualisieren
 Write-Success "Aktualisiere README.md..."
 $readmeContent = Get-Content "README.md" -Raw
-$readmeContent = $readmeContent -replace "Aktuelle Version \`v$currentVersion\`", "Aktuelle Version \`v$newVersion\`"
+$versionPattern = "Aktuelle Version ``v$currentVersion``"
+$versionReplacement = "Aktuelle Version ``v$newVersion``"
+$readmeContent = $readmeContent -replace $versionPattern, $versionReplacement
 Set-Content "README.md" $readmeContent
 
 # Änderungen committen
