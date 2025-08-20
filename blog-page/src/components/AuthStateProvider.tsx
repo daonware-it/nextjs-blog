@@ -40,7 +40,7 @@ export const AuthStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         if (data.status === 'BANNED') {
           await signOut({ redirect: false });
-          router.push('/login?error=banned');
+          await router.push('/login?error=banned');
         }
       } catch (error) {
       } finally {
@@ -62,7 +62,7 @@ export const AuthStateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         if (data.status === 'BANNED') {
           await signOut({ redirect: false });
-          router.push('/login?error=banned');
+          await router.push('/login?error=banned');
         }
       } catch (error) {
       } finally {

@@ -1,11 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
-import prisma from '../../../../../lib/prisma';
-import { createAuditLog } from '../../../../lib/auditLogUtils';
+import authOptions from '../../auth/[...nextauth]';
+import { prisma } from '@/lib/prisma';
+import { createAuditLog } from '@/lib/auditLogUtils';
+
+interface Session {
+  user: {
+    id: number;
+    email: string;
+    role: string;
+  };
+  expires: string;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions) as Session | null;
 
   // Überprüfen, ob der Benutzer authentifiziert und ein Admin oder Moderator ist
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MODERATOR')) {

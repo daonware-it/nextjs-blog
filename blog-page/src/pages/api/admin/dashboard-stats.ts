@@ -1,13 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import { getDashboardStats } from '../../../admin/dashboard-stats';
+import authOptions from '../auth/[...nextauth]';
+import { getDashboardStats } from '@/admin/dashboard-stats';
+import { Session } from "next-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Sitzungsinformationen abrufen
-    const session = await getServerSession(req, res, authOptions);
-    
+    const session = await getServerSession(req, res, authOptions) as Session | null;
+
     // Statistiken abrufen mit der Hilfsfunktion
     const stats = await getDashboardStats(session);
     

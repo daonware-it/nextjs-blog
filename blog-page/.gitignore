@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Next.js Build-Output
+.next/
+out/
+
+# Optional, häufig nützlich
+*.log
+.DS_Store
+coverage/
+dist/
+.vercel/
+node_modules
+.snyk

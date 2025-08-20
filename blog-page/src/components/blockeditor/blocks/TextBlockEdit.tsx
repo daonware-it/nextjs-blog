@@ -31,8 +31,7 @@ function sanitizeHtml(html: string): string {
       // Nicht erlaubte Tags entfernen
       if (!allowedTags.includes(tagName)) {
         // Nur den Textinhalt behalten
-        const text = document.createTextNode(element.textContent || '');
-        return text;
+        return document.createTextNode(element.textContent || '');
       }
       
       // Alle Attribute entfernen, die nicht erlaubt sind
@@ -183,8 +182,6 @@ export default function TextBlockEdit({ block, onChange }: any) {
   const [aiPrompt, setAiPrompt] = useState("");
   const [promptType, setPromptType] = useState<'text' | 'title' | 'description'>('text');
   const [useFormatting, setUseFormatting] = useState(true);
-  const [aiResult, setAiResult] = useState("");
-  const [showAiResult, setShowAiResult] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [showColor, setShowColor] = useState(false);
 
@@ -290,14 +287,6 @@ export default function TextBlockEdit({ block, onChange }: any) {
 
   function handleHeading(level: number) {
     exec('formatBlock', 'H' + level);
-  }
-
-  function handleBlockquote() {
-    exec('formatBlock', 'BLOCKQUOTE');
-  }
-
-  function handleCode() {
-    exec('formatBlock', 'PRE');
   }
 
   function handleAlign(align: string) {
@@ -563,8 +552,6 @@ export default function TextBlockEdit({ block, onChange }: any) {
                       } else {
                         // Bei Titel oder Beschreibung zeigen wir das Ergebnis als Vorschau an
                         // und bieten die Möglichkeit, es zu kopieren oder einzufügen
-                        setAiResult(data.result);
-                        setShowAiResult(true);
                         setAiLoading(false);
                         return;
                       }
@@ -714,14 +701,14 @@ export default function TextBlockEdit({ block, onChange }: any) {
           const html = (e.target as HTMLDivElement).innerHTML;
           onChange(html);
         }}
-        onBlur={e => {
+        onBlur={_ => {
           // Beim Verlassen Wert speichern
           const html = ref.current ? ref.current.innerHTML : '';
           onChange(html);
         }}
-        onKeyDown={e => {
-          if (e.key === 'Tab') {
-            e.preventDefault();
+        onKeyDown={_ => {
+          if (_.key === 'Tab') {
+            _.preventDefault();
             // Prüfe, ob Cursor in einer Liste steht
             const sel = window.getSelection();
             if (!sel || sel.rangeCount === 0) return;
@@ -736,7 +723,7 @@ export default function TextBlockEdit({ block, onChange }: any) {
               parent = parent.parentElement;
             }
             if (inList && liNode) {
-              if (e.shiftKey) {
+              if (_.shiftKey) {
                 document.execCommand('outdent');
               } else {
                 document.execCommand('indent');

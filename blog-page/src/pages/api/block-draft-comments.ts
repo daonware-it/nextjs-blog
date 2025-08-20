@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "./auth/[...nextauth]";
+import { getServerSession } from "next-auth/next";
+import authOptions from "./auth/[...nextauth]";
+import { Session } from "next-auth";
 
 const prisma = new PrismaClient();
 
@@ -29,7 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "POST") {
     // Nur eingeloggte Nutzer dürfen kommentieren
-    const session = await getServerSession(req, res, authOptions);
+    const sessionRaw = await getServerSession(req, res, authOptions);
+    const session = sessionRaw as Session | null;
     if (!session?.user?.id) {
       return res.status(401).json({ error: "Nicht angemeldet" });
     }
@@ -47,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const comment = await prisma.blockDraftComment.create({
       data: {
         blockDraftId: Number(blockDraftId),
-        userId: Number(session.user.id),
+        userId: parseInt(session.user.id ?? "0"),
         content: content.trim(),
         parentCommentId: parentId,
       },
@@ -58,9 +60,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === "DELETE") {
     // Nur Admins dürfen löschen
-    const session = await getServerSession(req, res, authOptions);
-    if (!session?.user?.role || session.user.role !== 'ADMIN') {
-      return res.status(403).json({ error: "Keine Admin-Berechtigung" });
+    const sessionRawDel = await getServerSession(req, res, authOptions);
+    const sessionDel = sessionRawDel as Session | null;
+    if (!sessionDel?.user?.role || sessionDel.user.role !== "ADMIN") {
+      return res.status(403).json({ error: "Nicht autorisiert" });
     }
     const { commentId } = req.body;
     if (!commentId || isNaN(Number(commentId))) {

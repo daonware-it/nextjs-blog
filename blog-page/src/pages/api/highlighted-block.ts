@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { highlightCodeServer } from '../../lib/highlightServer';
+import { highlightCodeServer } from '@/lib/highlightServer';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, language } = req.body;

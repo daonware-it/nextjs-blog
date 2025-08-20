@@ -1,9 +1,8 @@
 import React from "react";
 import Head from "next/head";
-import styles from "../components/login.module.css";
-import navbarStyles from "./navbar.module.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import styles from '@/components/login.module.css';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function HomePage() {
   return (

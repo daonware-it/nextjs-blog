@@ -10,7 +10,6 @@ export default function AdminBlogList() {
   const [search, setSearch] = useState("");
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalAction, setModalAction] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -25,7 +24,6 @@ export default function AdminBlogList() {
   const handleUnlockPost = async () => {
     if (!selectedPost) return;
     setActionLoading(true);
-    setModalAction('unlock');
     setActionError(null);
     try {
       const res = await fetch('/api/block-draft', {
@@ -33,7 +31,11 @@ export default function AdminBlogList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: selectedPost.id, lock: false })
       });
-      if (!res.ok) throw new Error('Fehler beim Entsperren');
+      if (!res.ok) {
+        setActionError('Fehler beim Entsperren!');
+        setActionLoading(false);
+        return;
+      }
       setModalOpen(false);
       setPosts(posts => posts.map(p => p.id === selectedPost.id ? { ...p, locked: false } : p));
     } catch (e) {
@@ -49,7 +51,6 @@ export default function AdminBlogList() {
   const handleLockPost = async () => {
     if (!selectedPost) return;
     setActionLoading(true);
-    setModalAction('lock');
     setActionError(null);
     try {
       const res = await fetch('/api/block-draft', {
@@ -57,7 +58,11 @@ export default function AdminBlogList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: selectedPost.id, lock: true })
       });
-      if (!res.ok) throw new Error('Fehler beim Sperren');
+      if (!res.ok) {
+        setActionError('Fehler beim Sperren!');
+        setActionLoading(false);
+        return;
+      }
       setModalOpen(false);
       setPosts(posts => posts.map(p => p.id === selectedPost.id ? { ...p, locked: true } : p));
     } catch (e) {
@@ -129,7 +134,6 @@ export default function AdminBlogList() {
     if (!selectedPost) return;
     
     setActionLoading(true);
-    setModalAction('status');
     setActionError(null);
     
     try {
@@ -139,8 +143,12 @@ export default function AdminBlogList() {
         body: JSON.stringify({ id: selectedPost.id, status: selectedPost.status })
       });
       
-      if (!res.ok) throw new Error('Fehler beim Speichern');
-      
+      if (!res.ok) {
+        setActionError('Fehler beim Speichern!');
+        setActionLoading(false);
+        return;
+      }
+
       setModalOpen(false);
       setPosts(posts => posts.map(p => 
         p.id === selectedPost.id ? { ...p, status: selectedPost.status } : p
@@ -158,7 +166,6 @@ export default function AdminBlogList() {
   const handleDeletePost = async () => {
     if (!selectedPost) return;
     setActionLoading(true);
-    setModalAction('delete');
     setActionError(null);
     try {
       const res = await fetch('/api/block-draft', {
@@ -166,7 +173,11 @@ export default function AdminBlogList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: selectedPost.id })
       });
-      if (!res.ok) throw new Error('Fehler beim Löschen');
+      if (!res.ok) {
+        setActionError('Fehler beim Löschen!');
+        setActionLoading(false);
+        return;
+      }
       setModalOpen(false);
       setShowDeleteConfirm(false);
       setPosts(posts => posts.map(p => p.id === selectedPost.id ? { ...p, deleteAt: new Date().toISOString() } : p));
@@ -184,7 +195,6 @@ export default function AdminBlogList() {
     if (!selectedPost) return;
     
     setActionLoading(true);
-    setModalAction('restore');
     setActionError(null);
     
     try {
@@ -194,8 +204,12 @@ export default function AdminBlogList() {
         body: JSON.stringify({ id: selectedPost.id, restore: true })
       });
       
-      if (!res.ok) throw new Error('Fehler beim Wiederherstellen');
-      
+      if (!res.ok) {
+        setActionError('Fehler beim Wiederherstellen!');
+        setActionLoading(false);
+        return;
+      }
+
       setModalOpen(false);
       setPosts(posts => posts.map(p => 
         p.id === selectedPost.id ? { ...p, deleteAt: null } : p
@@ -214,7 +228,6 @@ export default function AdminBlogList() {
     if (!selectedPost) return;
     
     setActionLoading(true);
-    setModalAction('publish');
     setActionError(null);
     
     try {
@@ -224,8 +237,12 @@ export default function AdminBlogList() {
         body: JSON.stringify({ id: selectedPost.id, status: 'VEROEFFENTLICHT' })
       });
       
-      if (!res.ok) throw new Error('Fehler beim Freigeben');
-      
+      if (!res.ok) {
+        setActionError('Fehler beim Freigeben!');
+        setActionLoading(false);
+        return;
+      }
+
       setModalOpen(false);
       setPosts(posts => posts.map(p => 
         p.id === selectedPost.id ? { ...p, status: 'VEROEFFENTLICHT' } : p
@@ -234,36 +251,6 @@ export default function AdminBlogList() {
       setActionError('Fehler beim Freigeben!');
     } finally {
       setActionLoading(false);
-    }
-  };
-
-  /**
-   * Render-Funktion für Blog-Inhaltsblöcke
-   */
-  const renderContentBlock = (block: any, idx: number) => {
-    if (block.data && typeof block.data === 'string' && /<.+?>/.test(block.data)) {
-      // HTML-Block - sicher anzeigen
-      return (
-        <div 
-          key={idx} 
-          dangerouslySetInnerHTML={{ __html: block.data }} 
-          className={styles.contentBlock}
-        />
-      );
-    } else if (block.data && typeof block.data === 'string') {
-      // Textblock
-      return <div key={idx} className={styles.contentBlock}>{block.data}</div>;
-    } else {
-      // Fallback: JSON anzeigen
-      return (
-        <pre 
-          key={idx} 
-          className={styles.contentBlock}
-          style={{ overflowX: 'auto', whiteSpace: 'pre-wrap' }}
-        >
-          {JSON.stringify(block, null, 2)}
-        </pre>
-      );
     }
   };
 
@@ -360,8 +347,7 @@ export default function AdminBlogList() {
                         onClick={() => { 
                           setSelectedPost(post); 
                           setModalOpen(true); 
-                          setModalAction(null); 
-                          setActionError(null); 
+                          setActionError(null);
                         }}
                       >
                         Vorschau

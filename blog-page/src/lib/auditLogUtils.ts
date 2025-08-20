@@ -1,5 +1,5 @@
 // Hilfsfunktion zur Erstellung von Audit-Logs
-import prisma from '../../lib/prisma';
+import { prisma } from '@/lib/prisma';
 
 export async function createAuditLog({
   userId,

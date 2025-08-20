@@ -1,9 +1,39 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '../../../../../../lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
-import { createAuditLog } from '../../../../../lib/auditLogUtils';
-import { hasBlockedTokens } from '../../../../../lib/tokenBlockHelpers';
+import { prisma } from 'lib/prisma';
+import { getAdminSession } from 'src/lib/authHelpers';
+import { createAuditLog } from 'src-lib/auditLogUtils';
+import { hasBlockedTokens } from 'src-lib/tokenBlockHelpers';
+
+function getNotificationMessageAndType(user: any, req: NextApiRequest): { message: string; type: string } {
+  const hasActiveSubscription = user.subscriptions.length > 0;
+  const isActive = hasActiveSubscription && user.subscriptions[0].isActive;
+  const tokensBlocked = hasActiveSubscription && hasBlockedTokens(user.subscriptions[0]);
+
+  // Benutzerdefinierte Nachricht und Typ direkt berücksichtigen
+  const customMessage = req.body.message;
+  const customType = req.body.type;
+  let message: string;
+  let type: string = 'info';
+
+  if (customMessage) {
+    message = customMessage;
+  } else if (tokensBlocked) {
+    message = 'Deine KI-Tokens sind derzeit gesperrt. Bitte kontaktiere den Support für weitere Informationen.';
+  } else if (!isActive) {
+    message = 'Dein Abonnement ist derzeit inaktiv. Bitte kontaktiere den Support für weitere Informationen.';
+  } else {
+    const tokenCount = user.subscriptions[0].includedRequests ?? 0;
+    message = `Deine KI-Tokens sind aktiv. Du hast derzeit ${tokenCount} Anfragen verfügbar.`;
+  }
+
+  if (customType && ['info', 'success', 'warning', 'error'].includes(customType)) {
+    type = customType;
+  } else if (tokensBlocked || !isActive) {
+    type = 'warning';
+  }
+
+  return { message, type };
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Cache-Header setzen
@@ -12,9 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Expires', '0');
   
   // Admin-Rechte prüfen
-  const session = await getServerSession(req, res, authOptions);
-  
-  if (!session || session.user?.role !== 'ADMIN') {
+  const session = await getAdminSession(req, res);
+  if (!session) {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }
 
@@ -41,39 +70,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!user) {
         return res.status(404).json({ error: 'Benutzer nicht gefunden' });
       }
-      
-      // Token-Status prüfen
-      const hasActiveSubscription = user.subscriptions.length > 0;
-      const isActive = hasActiveSubscription && user.subscriptions[0].isActive;
-      const tokensBlocked = hasActiveSubscription && hasBlockedTokens(user.subscriptions[0]);
-      
-      // Nachricht basierend auf dem Status generieren
-      let message;
-      let type = 'info';
-      
-      if (tokensBlocked) {
-        message = 'Deine KI-Tokens sind derzeit gesperrt. Bitte kontaktiere den Support für weitere Informationen.';
-        type = 'warning';
-      } else if (!isActive) {
-        message = 'Dein Abonnement ist derzeit inaktiv. Bitte kontaktiere den Support für weitere Informationen.';
-        type = 'warning';
-      } else {
-        const tokenCount = user.subscriptions[0].includedRequests ?? 0;
-        message = `Deine KI-Tokens sind aktiv. Du hast derzeit ${tokenCount} Anfragen verfügbar.`;
-      }
-      
-      // Benutzerdefinierte Nachricht verwenden, wenn vorhanden
-      const customMessage = req.body.message;
-      if (customMessage) {
-        message = customMessage;
-      }
-      
-      // Benutzerdefinierter Typ verwenden, wenn vorhanden
-      const customType = req.body.type;
-      if (customType && ['info', 'success', 'warning', 'error'].includes(customType)) {
-        type = customType;
-      }
-      
+      // Nachricht und Typ generieren
+      const { message, type } = getNotificationMessageAndType(user, req);
+
       // Benachrichtigung erstellen
       const notification = await prisma.notification.create({
         data: {
@@ -98,9 +97,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         success: true,
         notification,
         tokenStatus: {
-          hasActiveSubscription,
-          isActive,
-          tokensBlocked
+          hasActiveSubscription: user.subscriptions.length > 0,
+          isActive: user.subscriptions.length > 0 && user.subscriptions[0].isActive,
+          tokensBlocked: user.subscriptions.length > 0 && hasBlockedTokens(user.subscriptions[0]),
         }
       });
     } catch (error) {

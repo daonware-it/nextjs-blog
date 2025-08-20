@@ -48,7 +48,9 @@ const AuditLogView: React.FC = () => {
     try {
       const response = await fetch(`/api/profile/auditlog-simple?page=${page}&pageSize=10`);
       if (!response.ok) {
-        throw new Error('Fehler beim Abrufen der Audit-Logs');
+        setError('Fehler beim Abrufen der Audit-Logs');
+        setLoading(false);
+        return;
       }
       
       const data: AuditLogResponse = await response.json();

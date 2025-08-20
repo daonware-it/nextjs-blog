@@ -11,7 +11,7 @@
 .timelineEditorInput {
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1.5px solid #cfd8dc;
+  border: 2px solid #cfd8dc;
   font-size: 1em;
   background: #fff;
   transition: border 0.2s, box-shadow 0.2s;

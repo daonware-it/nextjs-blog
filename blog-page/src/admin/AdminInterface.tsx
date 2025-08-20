@@ -1,13 +1,14 @@
 ﻿import React, { useState, useEffect } from 'react';
 import AdminCommentList from './AdminCommentList';
 import AdminBlogList from './AdminBlogList';
+import AdminEmailTemplates from './AdminEmailTemplates';
 import { useSession, signIn } from 'next-auth/react';
+import type { Session } from "next-auth";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import styles from './admin.module.css';
 import { getTicketStats } from './ticket-stats';
 import Head from 'next/head';
-
 
 import {
   Dashboard,
@@ -34,7 +35,7 @@ interface DashboardStats {
 }
 
 const AdminInterface: React.FC = () => {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() as { data: Session | null, status: string };
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [stats, setStats] = useState<DashboardStats>({
     isLoading: true,
@@ -97,10 +98,7 @@ const AdminInterface: React.FC = () => {
     };
 
     if (selectedMenu === 'dashboard' && session) {
-      const loadStats = async () => {
-        await loadDashboardStats();
-      };
-      loadStats();
+      (async () => { await loadDashboardStats(); })();
     }
   }, [selectedMenu, session]);
 
@@ -127,10 +125,7 @@ const AdminInterface: React.FC = () => {
     };
 
     if (selectedMenu === 'tickets' && session) {
-      const loadStats = async () => {
-        await loadTicketStats();
-      };
-      loadStats();
+      (async () => { await loadTicketStats(); })();
     }
   }, [selectedMenu, session]);
 
@@ -189,6 +184,7 @@ const AdminInterface: React.FC = () => {
             selectedMenu === 'system' ? 'Systemeinstellungen' :
             selectedMenu === 'analytics' ? 'Statistiken & Berichte' :
             selectedMenu === 'debug' ? 'Debug & Diagnose' :
+            selectedMenu === 'emailtemplates' ? 'E-Mail-Vorlage' :
             'Unbekannter Bereich'
           }`}
         </title>
@@ -355,6 +351,18 @@ const AdminInterface: React.FC = () => {
                   Statistiken
                 </button>
               </li>
+              <li>
+                <button
+                  className={`${styles.adminNavItem} ${selectedMenu === 'emailtemplates' ? styles.active : ''}`}
+                  onClick={() => setSelectedMenu('emailtemplates')}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                  E-Mail-Vorlagen
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
@@ -375,6 +383,7 @@ const AdminInterface: React.FC = () => {
               {selectedMenu === 'system' && 'Systemeinstellungen'}
               {selectedMenu === 'analytics' && 'Statistiken & Berichte'}
               {selectedMenu === 'debug' && 'Debug & Diagnose'}
+              {selectedMenu === 'emailtemplates' && 'E-Mail-Vorlage'}
             </h1>
             
             {/* Dashboard Ansicht */}
@@ -417,7 +426,8 @@ const AdminInterface: React.FC = () => {
             {selectedMenu === 'system' && (
               <div className={styles.adminSection}>
                 <h2 className={styles.adminSectionTitle}>Systemeinstellungen</h2>
-                <p>Hier können Sie grundlegende Einstellungen der Webseite anpassen.</p>
+                <p>Hier können Sie Wartungsfunktionen und Systemeinstellungen verwalten.</p>
+                <CleanupBlockDraftsButton />
               </div>
             )}
             
@@ -451,6 +461,10 @@ const AdminInterface: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {selectedMenu === 'emailtemplates' && (
+              <AdminEmailTemplates />
+            )}
           </div>
         </div>
       </div>
@@ -460,3 +474,47 @@ const AdminInterface: React.FC = () => {
 };
 
 export default AdminInterface;
+
+// Button-Komponente am Ende der Datei ergänzen
+const CleanupBlockDraftsButton: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const handleCleanup = async () => {
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/admin/cleanup-blockdrafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setResult(data.message);
+      } else {
+        setResult(data.error || 'Fehler beim Löschen.');
+      }
+    } catch (err) {
+      setResult('Serverfehler.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <button
+        className={styles.adminButton}
+        onClick={handleCleanup}
+        disabled={loading}
+        style={{ background: '#dc3545', color: '#fff', fontWeight: 600 }}
+      >
+        {loading ? 'Lösche...' : 'Alte BlockDrafts löschen'}
+      </button>
+      {result && (
+        <div style={{ marginTop: 16, color: result.includes('Fehler') ? '#dc3545' : '#28a745', fontWeight: 500 }}>
+          {result}
+        </div>
+      )}
+    </div>
+  );
+};

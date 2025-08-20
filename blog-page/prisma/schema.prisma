@@ -98,6 +98,12 @@ model User {
   usernameHistory        UsernameHistory[]
   newsletters            Newsletter[]            @relation("NewsletterToUser")
   blockDraftCommentLikes BlockDraftCommentLike[] @relation("UserBlockDraftCommentLikes")
+  emailVerified           Boolean                 @default(false)
+  emailVerificationCode   String?
+  emailVerificationCodeExpires DateTime?
+  passwordResetCode           String?
+  passwordResetCodeExpires    DateTime?
+  recoveryCodes          String[]
 }
 
 model AiRequest {
@@ -219,6 +225,14 @@ model AuditLog {
   createdAt DateTime    @default(now())
   admin     User?       @relation("AdminAuditLogs", fields: [adminId], references: [id])
   user      User        @relation("UserAuditLogs", fields: [userId], references: [id])
+}
+
+model EmailTemplate {
+  id      Int    @id @default(autoincrement())
+  type    String @unique
+  subject String?
+  text    String?
+  html    String
 }
 
 enum UserStatus {

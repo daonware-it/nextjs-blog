@@ -1,15 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./[...nextauth]";
-import prisma from "../../../../lib/prisma";
+import authOptions from "./[...nextauth]";
+import { prisma } from 'lib/prisma';
 import bcrypt from "bcryptjs";
+import { Session } from "next-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Nur POST erlaubt." });
   }
 
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions) as Session | null;
   if (!session || !session.user?.email) {
     return res.status(401).json({ error: "Nicht authentifiziert." });
   }

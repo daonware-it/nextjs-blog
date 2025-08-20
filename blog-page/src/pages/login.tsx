@@ -1,12 +1,13 @@
 import * as React from "react";
 import Head from "next/head";
-import styles from "../components/login.module.css";
+import styles from '@/components/login.module.css';
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
+import Modal from "@/components/Modal"; // Modal-Komponente (muss ggf. erstellt werden)
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [pendingCredentials, setPendingCredentials] = useState<{email: string, password: string} | null>(null);
   const { data: session } = useSession();
   
   // Beim Laden der Seite überprüfen, ob es einen Fehlerparameter in der URL gibt
@@ -36,15 +40,50 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Sende nur E-Mail und Passwort
     const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
     setLoading(false);
+    // Prüfe, ob CredentialsSignin-Fehler und ob 2FA aktiviert ist
+    if (res?.error === "CredentialsSignin") {
+      // 2FA-Status abfragen
+      try {
+        const resp = await fetch(`/api/user/2fa-status?email=${encodeURIComponent(email)}`);
+        const data = await resp.json();
+        if (data.is2faEnabled) {
+          setPendingCredentials({ email, password });
+          setShow2FAModal(true);
+          return;
+        }
+      } catch (err) {
+        // Fehler beim API-Call
+      }
+      setError("Anmeldung fehlgeschlagen.");
+    } else if (res?.error) {
+      setError(typeof res.error === "string" ? res.error : "Anmeldung fehlgeschlagen.");
+    } else {
+      window.location.reload();
+    }
+  };
+
+  const handle2FASubmit = async () => {
+    if (!pendingCredentials) return;
+    setLoading(true);
+    setError("");
+    const res = await signIn("credentials", {
+      redirect: false,
+      email: pendingCredentials.email,
+      password: pendingCredentials.password,
+      twoFactorCode,
+    });
+    setLoading(false);
     if (res?.error) {
       setError(res.error);
     } else {
+      setShow2FAModal(false);
       window.location.reload();
     }
   };
@@ -127,13 +166,39 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-            <div className={styles.signupLink}>
-              Noch kein Konto? <a href="/register" className={styles.signupAnchor}>Registrieren</a>
+            <button
+              type="button"
+              className={styles.loginButton}
+              style={{ marginTop: 16, background: '#f5f5f5', color: '#007bff', border: '1px solid #007bff' }}
+              onClick={() => window.location.href = '/register'}
+            >
+              Noch keinen Account? Jetzt registrieren
+            </button>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <a href="/forgot-password" style={{ color: '#007bff', textDecoration: 'underline', fontWeight: 500 }}>
+                Passwort vergessen?
+              </a>
             </div>
           </div>
         </div>
         <Footer />
       </div>
+      {show2FAModal && (
+        <Modal onClose={() => setShow2FAModal(false)}>
+          <h2>2FA-Code erforderlich</h2>
+          <input
+            type="text"
+            placeholder="2FA-Code"
+            value={twoFactorCode}
+            onChange={e => setTwoFactorCode(e.target.value)}
+            className={styles.inputField}
+          />
+          <button onClick={handle2FASubmit} disabled={loading} className={styles.loginButton}>
+            {loading ? "Wird verarbeitet..." : "Bestätigen"}
+          </button>
+          {error && <div className={styles.errorMessage}>{error}</div>}
+        </Modal>
+      )}
     </>
   );
 }

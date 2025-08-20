@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
-import prisma from '../../../lib/prisma';
+import authOptions from './auth/[...nextauth]';
+import { PrismaClient, Notification } from '@prisma/client';
+import { Session } from "next-auth";
+
+const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -9,8 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Cache-Control', 'no-store, max-age=0');
     
     // Session überprüfen
-    const session = await getServerSession(req, res, authOptions);
-    
+    const session = await getServerSession(req, res, authOptions) as Session | null;
+
     if (!session || !session.user) {
       return res.status(200).json({ notifications: [], newNotifications: false });
     }
@@ -25,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const lastCheck = req.query.lastCheck ? new Date(String(req.query.lastCheck)) : null;
     
     // Wenn lastCheck nicht gültig ist, alle Benachrichtigungen abrufen
-    let notifications;
+    let notifications: Notification[];
     let newNotifications = false;
     
     if (lastCheck && !isNaN(lastCheck.getTime())) {

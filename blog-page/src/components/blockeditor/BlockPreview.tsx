@@ -1,19 +1,21 @@
-// ... Datei beginnt mit Imports ...
 import ExcerptBlock from "./ExcerptBlock";
 import React from "react";
-import { Block } from "./BlockTypes";
+import { Block, BlockType } from "./BlockTypes";
 import Toc from "./Toc";
 import Timeline from "./Timeline";
 import SpacingBlock from "./SpacingBlock";
 import styles from './BlockPreview.module.css';
 import TableBlockPreview from './TableBlockPreview';
-import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
+
+// Prismjs Komponenten
 import 'prismjs/components/prism-core';
+// Basissprachen
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-css';
+// Programmiersprachen
 import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-jsx';
 import 'prismjs/components/prism-tsx';
@@ -29,18 +31,21 @@ import 'prismjs/components/prism-go';
 import 'prismjs/components/prism-sql';
 import 'prismjs/components/prism-bash';
 import 'prismjs/components/prism-powershell';
+// Markup & Datenformate
 import 'prismjs/components/prism-yaml';
 import 'prismjs/components/prism-json';
 import 'prismjs/components/prism-markdown';
 
+import { NOTICE_TYPES } from './noticeTypes';
+
 interface BlockPreviewProps {
   block: Block;
-  nextBlockType?: string;
   blocks?: Block[];
+  nextBlockType?: BlockType;
 }
 
-const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlockType, blocks }) => {
-  
+const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, blocks }) => {
+
   const isDivider = block.type === 'divider' || block.type === 'separator';
   const spacingClass = isDivider ? styles.blockWithSpacing : styles.blockNoSpacing;
 
@@ -146,17 +151,7 @@ const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlock
     }
     case "notice": {
       // Vorschau für Notice-Block mit Typ und Text
-      const NOTICE_TYPES = [
-        { value: 'info', label: 'Information', color: '#1976d2', bg: '#e3f2fd' },
-        { value: 'warning', label: 'Warnung', color: '#b71c1c', bg: '#ffebee' },
-        { value: 'success', label: 'Erfolg', color: '#388e3c', bg: '#e8f5e9' },
-        { value: 'error', label: 'Fehler', color: '#d32f2f', bg: '#ffebee' },
-        { value: 'tip', label: 'Tipp', color: '#0288d1', bg: '#e1f5fe' },
-        { value: 'important', label: 'Wichtig', color: '#f57c00', bg: '#fff3e0' },
-        { value: 'question', label: 'Frage', color: '#512da8', bg: '#ede7f6' },
-        { value: 'hint', label: 'Hinweis', color: '#ad8b00', bg: '#fffbe6' },
-        { value: 'spoiler', label: 'Spoiler', color: '#333', bg: '#f3f3f3' }
-      ];
+      // NOTICE_TYPES wird jetzt importiert
       const noticeType = (block as any).noticeType || 'info';
       const data = (block as any).data || '';
       const type = NOTICE_TYPES.find(t => t.value === noticeType) || NOTICE_TYPES[0];
@@ -178,7 +173,7 @@ const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlock
       // Zeige für [shortlink url="..." text="..."] einen echten Link, sonst als Text
       const shortcode = block.data || "";
       let error = null;
-      if (!/^\[.+\]$/.test(shortcode.trim())) error = "Ungültiger Shortcode";
+      if (!/^\[.+]$/.test(shortcode.trim())) error = "Ungültiger Shortcode";
 
       // Shortlink-Parsing
       let link = null;
@@ -194,7 +189,7 @@ const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlock
       }
       return (
         <div className={spacingClass} style={{ fontFamily: 'monospace', color: error ? '#cf0808' : '#1976d2', background: '#f5f7fa', border: '1px solid #e2e4e7', borderRadius: 4, padding: 8, margin: '8px 0' }}>
-          {error ? `Fehler: ${error}` : link ? <>{link} <span style={{fontSize:13,opacity:0.7,marginLeft:8}}>[shortlink]</span></> : shortcode}
+          {error ? <ErrorMessage message={`Fehler: ${error}`} /> : link ? <>{link} <span style={{fontSize:13,opacity:0.7,marginLeft:8}}>[shortlink]</span></> : shortcode}
         </div>
       );
     }
@@ -207,7 +202,7 @@ const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlock
       // Video-Block: block.data ist die Video-URL oder ein Plattform-Link
       const url = block.data?.trim() || "";
       if (!url) {
-        return <div style={{color:'#cf0808',fontFamily:'monospace',margin:'8px 0'}}>Kein Video-Link angegeben.</div>;
+        return <ErrorMessage message="Kein Video-Link angegeben." />;
       }
       // YouTube
       const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
@@ -342,5 +337,10 @@ const BlockPreview: React.FC<BlockPreviewProps> = React.memo(({ block, nextBlock
       return <p>Unbekannter Blocktyp: {block.type}</p>;
   }
 });
+
+// Fehleranzeige-Komponente
+const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
+  <div style={{color:'#cf0808',fontFamily:'monospace',margin:'8px 0'}}>{message}</div>
+);
 
 export default BlockPreview;

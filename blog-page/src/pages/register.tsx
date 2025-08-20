@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import disposableEmailDomains from "./disposableEmailDomains.json";
-import styles from "../components/login.module.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import styles from '@/components/login.module.css';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function RegisterPage() {
   const { status } = useSession();
+  const router = useRouter();
   React.useEffect(() => {
     if (status === "authenticated") {
       window.location.href = "/";
@@ -88,8 +90,11 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccess("Registrierung erfolgreich! Du kannst dich jetzt anmelden.");
+        setSuccess("Registrierung erfolgreich! Bitte prüfe deine E-Mail und gib den Code zur Verifizierung ein.");
         setUsername(""); setName(""); setFullName(""); setEmail(""); setPassword(""); setPasswordRepeat(""); setAgb(false); setDatenschutz(false); setCaptchaToken("");
+        setTimeout(() => {
+          router.push("/verify-email");
+        }, 1500);
       } else {
         setError(data.error || "Fehler bei der Registrierung.");
         setTimeout(() => {

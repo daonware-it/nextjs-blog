@@ -1,6 +1,6 @@
 import React from 'react';
 import Head from "next/head";
-import styles from "../components/profile.module.css";
+import styles from '@/components/profile.module.css';
 import { useSession, signOut } from "next-auth/react";
 
 interface ProfileCardProps {
@@ -27,10 +27,11 @@ function ProfileCard(props: ProfileCardProps) {
     </div>
   );
 }
-import Navbar from "../components/Navbar";
+import Navbar from "@/components/Navbar";
 import dynamic from "next/dynamic";
-const AvatarUpload = dynamic(() => import("../components/AvatarUpload"), { ssr: false });
-import Footer from "../components/Footer";
+const AvatarUpload = dynamic(() => import("@/components/AvatarUpload"), { ssr: false });
+import Footer from "@/components/Footer";
+import Profile2FAActivate from "./profile/two-factor-activate";
 
 
 export default function ProfilePage() {
@@ -191,6 +192,7 @@ export default function ProfilePage() {
   const [userNewsletters, setUserNewsletters] = React.useState<number[]>([]);
   const [nlLoading, setNlLoading] = React.useState(false);
   const [nlMessage, setNlMessage] = React.useState<string | null>(null);
+  const [show2FAModal, setShow2FAModal] = React.useState(false);
 
   React.useEffect(() => {
     async function fetchAvatar() {
@@ -516,6 +518,13 @@ export default function ProfilePage() {
             icon="📰"
             action={() => setShowNewsletterModal(true)}
           />
+          <ProfileCard
+            label="2FA (Zwei-Faktor)"
+            value={<span>{user?.is2FAEnabled ? "Aktiviert" : "Nicht aktiviert"}</span>}
+            color={user?.is2FAEnabled ? "#388e3c" : "#d32f2f"}
+            icon="🔑"
+            action={() => setShow2FAModal(true)}
+          />
           </div>
         <div style={{ marginTop: 40, textAlign: "center" }}>
           <button
@@ -830,6 +839,21 @@ export default function ProfilePage() {
 
       </div>
 
+      {show2FAModal && (
+        <div className={styles.profileModalOverlay}>
+          <div className={styles.profileModal} style={{ minWidth: 340 }}>
+            <button
+              onClick={() => setShow2FAModal(false)}
+              style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 22, color: "#888", cursor: "pointer" }}
+              aria-label="Schließen"
+            >×</button>
+            <div style={{ fontWeight: 600, fontSize: 19, marginBottom: 6, color: "#2a3a4a" }}>
+              Zwei-Faktor-Authentifizierung (2FA)
+            </div>
+            <Profile2FAActivate userId={user?.id} />
+          </div>
+        </div>
+      )}
     </>
   );
 }

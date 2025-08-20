@@ -1,16 +1,17 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./[...nextauth]";
+import authOptions from "./[...nextauth]";
 import { NextApiRequest, NextApiResponse } from "next";
 import { promises as fs } from "fs";
 import path from "path";
 import { IncomingForm } from "formidable";
 import { PrismaClient } from "@prisma/client";
+import { Session } from "next-auth";
 
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();
-  const session = await getServerSession(req, res, authOptions);
+  const session = (await getServerSession(req, res, authOptions)) as Session | null;
   if (!session || !session.user?.email) return res.status(401).json({ error: "Nicht authentifiziert." });
 
   const form = new IncomingForm({ maxFileSize: 2 * 1024 * 1024 }); // 2MB

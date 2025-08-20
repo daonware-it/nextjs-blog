@@ -22,7 +22,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const pageSize = 10;
   const [searchQuery, setSearchQuery] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -128,9 +128,8 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
           // Fallback: Normale Benutzerabfrage ohne Suche
           setDialogMessage('Die Suchfunktion ist noch nicht implementiert. Alle Benutzer werden angezeigt.');
           setErrorDialogOpen(true);
-          
           // Normale Abfrage ausführen
-          fetchAllUsers();
+          await fetchAllUsers();
         } else {
           const errorData = await response.json().catch(() => ({ error: response.statusText }));
           setDialogMessage(`Fehler bei der Benutzersuche: ${errorData.error || response.statusText}`);
@@ -147,10 +146,10 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
   };
   
   // Handler für Tastatureingaben im Suchfeld
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleUserSearch();
+      await handleUserSearch();
     }
   };
   
@@ -188,7 +187,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
       });
       if (response.ok) {
         // Erfolgsmeldung wird jetzt direkt in BenutzerBearbeiten.tsx angezeigt
-        fetchAllUsers();
+        await fetchAllUsers();
         // Das Bearbeiten-Fenster bleibt geöffnet
       } else {
         const errorData = await response.json();
@@ -241,7 +240,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
       
       if (response.ok) {
         // Nach erfolgreicher Aktualisierung die Benutzerliste neu laden
-        fetchAllUsers();
+        await fetchAllUsers();
         setDialogMessage('Benutzerrolle wurde erfolgreich geändert.');
         setSuccessDialogOpen(true);
       } else {
@@ -286,7 +285,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
         },
         body: JSON.stringify({ 
           userId: userStatusChange.userId, 
-          active: userStatusChange.newStatus === 'ACTIVE' ? true : false
+          active: userStatusChange.newStatus === 'ACTIVE'
         })
       });
       
@@ -342,7 +341,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
       
       if (response.ok) {
         // Nach erfolgreicher Aktualisierung die Benutzerliste neu laden
-        fetchAllUsers();
+        await fetchAllUsers();
         setDialogMessage(`Tokens wurden erfolgreich ${blockTokens ? 'gesperrt' : 'entsperrt'}.`);
         setSuccessDialogOpen(true);
       } else {
@@ -421,7 +420,7 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
       
       if (response.ok) {
         // Nach erfolgreicher Löschung die Benutzerliste neu laden
-        fetchAllUsers();
+        await fetchAllUsers();
         setDialogMessage('Benutzer wurde erfolgreich gelöscht.');
         setSuccessDialogOpen(true);
       } else {
@@ -467,7 +466,9 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
   // Benutzer laden, wenn die Komponente geladen wird oder sich relevante Zustände ändern
   useEffect(() => {
     if (session && status !== 'loading') {
-      fetchAllUsers();
+      fetchAllUsers().catch((err) => {
+        console.error('Fehler beim Laden der Benutzer:', err);
+      });
     }
   }, [session, status, currentPage, pageSize, userFilter]);
 
@@ -697,6 +698,30 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
         </div>
       )}
       
+      {/* Erfolgsdialog */}
+      {successDialogOpen && (
+        <div className={styles.dialogOverlay}>
+          <div className={styles.dialogContent}>
+            <div className={styles.dialogHeader}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="9 12 12 15 15 9"></polyline>
+              </svg>
+              <h3>Erfolg</h3>
+            </div>
+            <p>{dialogMessage}</p>
+            <div className={styles.dialogActions}>
+              <button
+                className={styles.confirmButton}
+                onClick={() => setSuccessDialogOpen(false)}
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Rangverwaltungs-PopUp */}
       {rankPopupVisible && selectedUserForRank && (
         <div className={styles.dialogOverlay} style={{ 
@@ -1111,9 +1136,9 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
         <div style={{ display: 'flex', gap: '10px' }}>
           <button 
             className={styles.adminButton}
-            onClick={() => { 
+            onClick={async () => {
               setSearchQuery('');
-              fetchAllUsers();
+              await fetchAllUsers();
             }}
           >
             <svg 
@@ -1323,9 +1348,9 @@ const Benutzerverwaltung: React.FC<BenutzerProps> = ({ ensureSession }) => {
             {searchQuery && (
               <button 
                 className={styles.adminButton}
-                onClick={() => {
+                onClick={async () => {
                   setSearchQuery('');
-                  fetchAllUsers();
+                  await fetchAllUsers();
                 }}
                 style={{ marginTop: '10px', background: '#3b82f6', color: 'white', borderRadius: '6px', fontWeight: 500 }}
               >

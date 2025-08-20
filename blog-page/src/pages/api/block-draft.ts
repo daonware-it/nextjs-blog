@@ -1,26 +1,17 @@
-import { getServerSession } from "next-auth";
+import { getUserFromSession } from "@/lib/apiUtils";
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "./auth/[...nextauth]";
 import { PrismaClient } from "@prisma/client";
-import { createAuditLog } from "../../lib/auditLogUtils";
+import { createAuditLog } from "src-lib/auditLogUtils";
 
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
-  const userEmail = session?.user?.email;
-  if (!userEmail) {
-    return res.status(401).json({ error: "Nicht eingeloggt" });
-  }
-
-  const user = await prisma.user.findUnique({ where: { email: userEmail } });
-  if (!user) {
-    return res.status(404).json({ error: "User nicht gefunden" });
-  }
+  const user = await getUserFromSession(req, res);
+  if (!user) return;
 
   if (req.method === "GET") {
     const { id } = req.query;
-    let draft = null;
+    let draft: Awaited<ReturnType<typeof prisma.blockDraft.findUnique>> | null = null;
     if (id) {
       draft = await prisma.blockDraft.findUnique({
         where: { id: Number(id) },
@@ -30,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       });
-      if (draft && draft.userId !== user.id) draft = null;
+      if (draft && draft.userId !== Number(user.id)) draft = null;
     }
     return res.status(200).json(draft || null);
   }
@@ -40,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.body;
       if (!id) return res.status(400).json({ error: "ID fehlt" });
       const draft = await prisma.blockDraft.findUnique({ where: { id: Number(id) } });
-      if (!draft || draft.userId !== user.id) return res.status(404).json({ error: "Entwurf nicht gefunden" });
+      if (!draft || draft.userId !== Number(user.id)) return res.status(404).json({ error: "Entwurf nicht gefunden" });
       await prisma.blockDraft.update({
         where: { id: Number(id) },
         data: { status: 'NICHT_OEFFENTLICH', deleteAt: new Date() }
@@ -49,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // AuditLog je nach Status
       if (draft.status === 'VEROEFFENTLICHT') {
         await createAuditLog({
-          userId: user.id,
+          userId: Number(user.id),
           action: 'POST_DELETE',
           details: `Veröffentlichter Beitrag gelöscht: "${draft.title || 'Ohne Titel'}" am ${new Date().toLocaleString('de-DE')}`,
           oldValue: `ID: ${id}`,
@@ -57,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       } else {
         await createAuditLog({
-          userId: user.id,
+          userId: Number(user.id),
           action: 'BLOCK_DRAFT_DELETE',
           details: `Entwurf (ID: ${id}) gelöscht`,
           oldValue: `ID: ${id}`
@@ -100,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         await createAuditLog({
           userId: draft.userId,
-          adminId: user.id,
+          adminId: Number(user.id),
           action: lock ? 'BLOCK_DRAFT_LOCK' : 'BLOCK_DRAFT_UNLOCK',
           details: `Beitrag (ID: ${id}, Titel: ${draft.title || 'Ohne Titel'}) wurde ${lock ? 'gesperrt' : 'freigegeben'} von ${user.name || user.username || user.email}`,
           oldValue: draft.locked ? 'gesperrt' : 'frei',
@@ -128,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
         // Auditlog für Statusänderung
         await createAuditLog({
-          userId: user.id,
+          userId: Number(user.id),
           action: 'BLOCK_DRAFT_STATUS_CHANGE',
           details: `Status von BlockDraft (ID: ${id}, Titel: ${draft.title || 'Ohne Titel'}) geändert: ${draft.status} → ${status}`,
           oldValue: draft.status,
@@ -152,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error('Ungültiges Format für blocks:', blocks);
         return res.status(400).json({ error: "Blocks muss ein Array sein" });
       }
-      const dataToSave: any = { userId: user.id };
+      const dataToSave: any = { userId: Number(user.id) };
       if (blocks !== undefined) dataToSave.blocks = blocks;
       if (typeof title === 'string') dataToSave.title = title;
       if (typeof description === 'string') dataToSave.description = description;
@@ -160,18 +151,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (typeof status === 'string') dataToSave.status = status;
       if (categoryId !== undefined && categoryId !== null && categoryId !== "") dataToSave.categoryId = Number(categoryId);
 
-      let draft;
+      let draft: Awaited<ReturnType<typeof prisma.blockDraft.update>>;
       if (id) {
         // Vorherigen Status laden
         const prevDraft = await prisma.blockDraft.findUnique({ where: { id: Number(id) } });
         draft = await prisma.blockDraft.update({
-          where: { id: Number(id), userId: user.id },
+          where: { id: Number(id), userId: Number(user.id) },
           data: dataToSave,
         });
         // Prüfen, ob Status auf VEROEFFENTLICHT geändert wurde
         if (prevDraft && prevDraft.status !== 'VEROEFFENTLICHT' && draft.status === 'VEROEFFENTLICHT') {
           await createAuditLog({
-            userId: user.id,
+            userId: Number(user.id),
             action: 'POST_PUBLISH',
             details: `Beitrag veröffentlicht: "${draft.title || 'Ohne Titel'}" am ${new Date().toLocaleString('de-DE')}`,
             oldValue: prevDraft.status,
@@ -179,7 +170,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           });
         }
         await createAuditLog({
-          userId: user.id,
+          userId: Number(user.id),
           action: 'BLOCK_DRAFT_UPDATE',
           details: `Entwurf "${title || 'Ohne Titel'}" aktualisiert`,
           oldValue: null,
@@ -191,7 +182,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           data: dataToSave,
         });
         await createAuditLog({
-          userId: user.id,
+          userId: Number(user.id),
           action: 'BLOCK_DRAFT_CREATE',
           details: `Neuer Entwurf "${title || 'Ohne Titel'}" erstellt`,
           newValue: `ID: ${draft.id}, Titel: ${title || 'Ohne Titel'}`

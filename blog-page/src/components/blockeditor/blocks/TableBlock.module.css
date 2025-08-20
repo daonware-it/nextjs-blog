@@ -1,9 +1,7 @@
-/* Popover nach unten anzeigen (z.B. bei oberster Zelle) */
-.tableCellPopoverDown {
+/* Gemeinsame Basis für Popover */
+.tableCellPopoverBase {
   position: absolute;
   left: 50%;
-  top: 100%;
-  transform: translate(-50%, 10px);
   background: #fff;
   border: 2px solid #1976d2;
   border-radius: 12px;
@@ -19,26 +17,15 @@
   transition: all 0.18s cubic-bezier(.4,0,.2,1);
   pointer-events: auto;
 }
+/* Popover nach unten anzeigen (z.B. bei oberster Zelle) */
+.tableCellPopoverDown {
+  top: 100%;
+  transform: translate(-50%, 10px);
+}
 /* Popover für Zellen-Editor */
 .tableCellPopover {
-  position: absolute;
-  left: 50%;
   top: 0;
   transform: translate(-50%, -110%);
-  background: #fff;
-  border: 2px solid #1976d2;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px 0 rgba(25,118,210,0.18);
-  padding: 16px 22px;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  z-index: 99999;
-  min-width: 240px;
-  max-width: 90vw;
-  font-size: 15px;
-  transition: all 0.18s cubic-bezier(.4,0,.2,1);
-  pointer-events: auto;
 }
 .tableToolbar {
   display: flex;
@@ -188,7 +175,7 @@
 .tableBlock label input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  border: 1.5px solid #d0d7de;
+  border: 2px solid #d0d7de;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -196,7 +183,7 @@
 .tableBlock select {
   font-size: 13px;
   padding: 4px 8px;
-  border: 1.5px solid #d0d7de;
+  border: 2px solid #d0d7de;
   border-radius: 6px;
   background: #fff;
   color: #57606a;

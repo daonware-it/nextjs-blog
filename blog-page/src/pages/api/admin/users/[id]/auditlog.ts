@@ -1,15 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '../../../../../../lib/prisma';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
+import { prisma } from 'lib/prisma';
+import { getAdminSessionOrThrow } from 'src/lib/authHelpers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Admin-Rechte prüfen
-  const session = await getServerSession(req, res, authOptions);
-  
-  if (!session || session.user?.role !== 'ADMIN') {
-    return res.status(401).json({ error: 'Nicht autorisiert' });
-  }
+  const session = await getAdminSessionOrThrow(req, res);
+  if (!session) return;
 
   const userId = parseInt(req.query.id as string, 10);
   

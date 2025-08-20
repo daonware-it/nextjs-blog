@@ -110,7 +110,7 @@ const Kategorien: React.FC<KategorienProps> = ({ ensureSession }) => {
       });
 
       if (response.ok) {
-        fetchCategories();
+        await fetchCategories();
 
         setNewCategory({
           name: '',
@@ -156,7 +156,7 @@ const Kategorien: React.FC<KategorienProps> = ({ ensureSession }) => {
       });
 
       if (response.ok) {
-        fetchCategories();
+        await fetchCategories();
 
         setEditingCategory(null);
 
@@ -198,7 +198,7 @@ const Kategorien: React.FC<KategorienProps> = ({ ensureSession }) => {
       });
 
       if (response.ok) {
-        fetchCategories();
+        await fetchCategories();
 
         setDialogMessage('Kategorie wurde erfolgreich gelöscht.');
         setSuccessDialogOpen(true);
@@ -263,8 +263,9 @@ const Kategorien: React.FC<KategorienProps> = ({ ensureSession }) => {
   );
 
   useEffect(() => {
-    fetchCategories();
-
+    fetchCategories().catch((err) => {
+      console.error('Fehler beim Laden der Kategorien:', err);
+    });
     return () => {
     };
   }, []);

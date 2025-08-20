@@ -1,19 +1,19 @@
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { Session } from "next-auth";
 import { NextApiRequest, NextApiResponse } from "next";
-import { authOptions } from "./auth/[...nextauth]";
+import authOptions from "./auth/[...nextauth]";
 
-import { PrismaClient } from '@prisma/client';
-import { hasIncludedRequests, decrementIncludedRequests } from '../../lib/aiQuotaUtils';
+import { prisma } from 'src-lib/prisma';
+import { hasIncludedRequests, decrementIncludedRequests } from 'src/lib/aiQuotaUtils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getServerSession(req, res, authOptions) as Session | null;
   const userEmail = session?.user?.email;
   if (!userEmail) {
     return res.status(401).json({ error: "Nicht eingeloggt" });
   }
 
-  const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({ 
+  const user = await prisma.user.findUnique({
     where: { email: userEmail },
     //@ts-ignore - status ist im Schema vorhanden, wird aber von TypeScript nicht erkannt
     select: { id: true, status: true } 
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     contextText = text.trim();
   }
 
-  let prompt = '';
+  let prompt: string;
   if (mode === 'title') {
     if (text && mode === 'title' && contextText) {
       prompt = `${text}\n\nHier ist der Inhalt als Kontext:\n${contextText}`;

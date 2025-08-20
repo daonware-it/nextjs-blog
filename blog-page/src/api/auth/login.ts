@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { ensurePostMethod } from '@/lib/apiUtils';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 const prisma = new PrismaClient();
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (ensurePostMethod(req, res)) return;
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email und Passwort erforderlich' });

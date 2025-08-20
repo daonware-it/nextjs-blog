@@ -1,13 +1,21 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '../../../../../../lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
-import { createAuditLog } from '../../../../../lib/auditLogUtils';
+import authOptions from '../../../auth/[...nextauth]';
+import { createAuditLog } from '@/lib/auditLogUtils';
+
+interface Session {
+  user: {
+    id: number;
+    email: string;
+    role: string;
+  };
+  expires: string;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Admin-Rechte prüfen
-  const session = await getServerSession(req, res, authOptions);
-  
+  const session = await getServerSession(req, res, authOptions) as Session | null;
   if (!session || session.user?.role !== 'ADMIN') {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }
@@ -75,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Audit-Log für die Erstellung eines neuen Abonnements erstellen
         await createAuditLog({
           userId: userId,
-          adminId: parseInt((session.user as any).id, 10),
+          adminId: session.user.id,
           action: 'SUBSCRIPTION_CREATE',
           details: `Neues Abonnement erstellt (${defaultPlan.name})`,
           oldValue: 'Kein Abonnement',
@@ -108,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Audit-Log für die Token-Aktualisierung
         await createAuditLog({
           userId: userId,
-          adminId: parseInt((session.user as any).id, 10),
+          adminId: session.user.id,
           action: 'TOKEN_UPDATE',
           details: `Token-Anzahl aktualisiert`,
           oldValue: oldTokens.toString(),
@@ -117,9 +125,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         // Benachrichtigung über Token-Änderung
         const tokenDiff = tokens - oldTokens;
-        let message = '';
-        let type = 'info';
-        
+        let message: string;
+        let type: string;
+
         if (tokenDiff > 0) {
           message = `Ein Administrator hat Ihnen ${tokenDiff} zusätzliche Tokens zugeteilt. Neue Gesamtanzahl: ${tokens}`;
           type = 'success';
@@ -128,6 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           type = 'warning';
         } else {
           message = `Ein Administrator hat Ihre Tokens aktualisiert. Neue Gesamtanzahl: ${tokens}`;
+          type = 'info';
         }
         
         await prisma.notification.create({
