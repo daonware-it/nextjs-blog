@@ -21,8 +21,8 @@ Stelle sicher, dass folgende Software installiert ist
 ### 1. Repository klonen
 
 ```bash
-git clone https://github.com/daonware-it/blog-system.git
-cd blog-system/homepage
+git clone https://github.com/daonware-it/nextjs-blog.git
+cd nextjs-blog/blog-page
 ```
 
 ----
