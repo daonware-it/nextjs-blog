@@ -349,7 +349,7 @@ const UnmemoizedGalleryBlockPreview: React.FC<GalleryBlockPreviewProps> = ({ dat
         padding: gap
       }}>
         {galleryData.images.map((url: string, i: number) => {
-          let aspectRatio: string | undefined;
+          let aspectRatio: string | undefined = undefined;
           switch (galleryData.aspect) {
             case "square": aspectRatio = "1 / 1"; break;
             case "16:9": aspectRatio = "16 / 9"; break;

@@ -50,11 +50,7 @@ const Tickets: React.FC<TicketsProps> = ({ ticketStats }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ commentId: report.commentId })
         });
-        if (!res.ok) {
-          setDeleteError("Fehler beim Löschen des Kommentars");
-          setDeleteLoading(false);
-          return;
-        }
+        if (!res.ok) throw new Error("Fehler beim Löschen");
         setDeleteSuccess(true);
         setTimeout(() => {
           setSelectedReport(null);

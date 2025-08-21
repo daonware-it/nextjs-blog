@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import Footer from "@/components/Footer";
-import ClientOnly from "@/components/ClientOnly";
+import Footer from "../components/Footer";
+import ClientOnly from "../components/ClientOnly";
 import dynamic from "next/dynamic";
 import styles from "./create-blog.module.css";
 
-const BlockEditor = dynamic(() => import("@/components/blockeditor/BlockEditor"), { ssr: false });
+const BlockEditor = dynamic(() => import("../components/blockeditor/BlockEditor"), { ssr: false });
 
 // Typen und Hilfskomponenten außerhalb der Hauptfunktion
 type UserType = {
@@ -113,11 +113,12 @@ function AiLimitModal({ aiLimitError, setShowAiLimitModal }: { aiLimitError: str
 // Hauptkomponente
 export default function CreateBlogPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userId = session?.user?.id;
 
   // States
   const [currentDraftId, setCurrentDraftId] = useState<string | undefined>(undefined);
+  const [isDraftIdReady, setIsDraftIdReady] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [coAuthor, setCoAuthor] = useState<UserType | null>(null);
   const [blogStatus, setBlogStatus] = useState<'ENTWURF' | 'VEROEFFENTLICHT' | 'GEPLANT' | 'NICHT_OEFFENTLICH'>('ENTWURF');
@@ -152,6 +153,7 @@ export default function CreateBlogPage() {
     if (id && id !== currentDraftId) {
       setCurrentDraftId(id);
     }
+    setIsDraftIdReady(true);
   }, [router.isReady, router.query.id]);
 
   // Draft laden und Sperrstatus prüfen
@@ -332,7 +334,7 @@ export default function CreateBlogPage() {
     if (isLocked) return;
     const result = await saveDraft({ status: "VEROEFFENTLICHT" });
     if (result && result.draft && result.draft.status === "VEROEFFENTLICHT") {
-      await router.push("/blogs");
+      router.push("/blogs");
     } else {
       alert("Fehler: Der Beitrag konnte nicht veröffentlicht werden.");
     }
@@ -340,13 +342,13 @@ export default function CreateBlogPage() {
 
   // Zugriffsschutz
   useEffect(() => {
-    if (session === undefined) return;
+    if (status === "loading") return;
     if (!session?.user || !["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
       router.replace("/");
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
-  if (session === undefined) {
+  if (status === "loading") {
     return <div style={{textAlign: 'center', marginTop: 80, fontSize: 18}}>Lade...</div>;
   }
   if (!session?.user || !["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
@@ -491,7 +493,7 @@ export default function CreateBlogPage() {
                   <BlockEditor
                     value={blocks}
                     onChange={setBlocks}
-                    userId={userId}
+                    userId={String(userId)}
                     draftId={currentDraftId}
                     onDraftIdChange={handleDraftIdChange}
                   />

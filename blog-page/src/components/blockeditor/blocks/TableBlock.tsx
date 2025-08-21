@@ -85,13 +85,15 @@ const TableBlock: React.FC<TableBlockProps> = ({ table, onUpdate }) => {
 
   // State, um zu verfolgen, welche Zelle gerade bearbeitet wird
   const [editing, setEditing] = useState<{ row: number; col: number } | null>(null);
+  // State für den aktuellen Inhalt der bearbeiteten Zelle
+  const [editingValue, setEditingValue] = useState<string>('');
 
   // 2D-Array von Refs für die contentEditable-Divs
   const richInputRefs = useRef<Array<Array<React.RefObject<HTMLDivElement>>>>([]);
   if (!richInputRefs.current || richInputRefs.current.length !== safeTable.rows || richInputRefs.current[0]?.length !== safeTable.cols) {
     // Initialisiere oder passe die Größe an
-    richInputRefs.current = Array.from({ length: safeTable.rows }, () =>
-      Array.from({ length: safeTable.cols }, () => React.createRef<HTMLDivElement>())
+    richInputRefs.current = Array.from({ length: safeTable.rows }, (_, r) =>
+      Array.from({ length: safeTable.cols }, (_, c) => React.createRef<HTMLDivElement>())
     );
   }
 
@@ -271,6 +273,7 @@ const TableBlock: React.FC<TableBlockProps> = ({ table, onUpdate }) => {
                   }}
                   onClick={() => {
                     setEditing({ row: rowIdx, col: colIdx });
+                    setEditingValue(cell.text || '');
                   }}
                 >
                   {(editing && editing.row === rowIdx && editing.col === colIdx) ? (

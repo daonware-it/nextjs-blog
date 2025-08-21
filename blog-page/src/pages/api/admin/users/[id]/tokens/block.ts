@@ -1,18 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '@/lib/prisma';
+import prisma from '../../../../../../../lib/prisma';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../../../../auth/[...nextauth]';
-import { createAuditLog } from '@/lib/auditLogUtils';
-import { hasBlockedTokens, setTokenBlockStatus, createSubscriptionWithTokenStatus } from '@/lib/tokenBlockHelpers';
-
-interface Session {
-  user: {
-    id: number;
-    email: string;
-    role: string;
-  };
-  expires: string;
-}
+import { authOptions } from '../../../../auth/[...nextauth]';
+import { createAuditLog } from '../../../../../../lib/auditLogUtils';
+import { hasBlockedTokens, setTokenBlockStatus, createSubscriptionWithTokenStatus } from '../../../../../../lib/tokenBlockHelpers';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Cache-Header setzen
@@ -21,7 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Expires', '0');
   
   // Admin-Rechte prüfen
-  const session = await getServerSession(req, res, authOptions) as Session | null;
+  const session = await getServerSession(req, res, authOptions);
+  
   if (!session || session.user?.role !== 'ADMIN') {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }
@@ -99,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Audit-Log für die Statusänderung erstellen
         await createAuditLog({
           userId: userId,
-          adminId: session.user.id,
+          adminId: parseInt((session.user as any).id, 10),
           action: block ? 'TOKEN_BLOCK' : 'TOKEN_UNBLOCK',
           details: block ? 'Token-Nutzung gesperrt' : 'Token-Nutzung freigegeben',
           oldValue: wasBlocked ? 'Gesperrt' : 'Freigegeben',
@@ -127,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Audit-Log für die Erstellung eines neuen Abonnements
         await createAuditLog({
           userId: userId,
-          adminId: session.user.id,
+          adminId: parseInt((session.user as any).id, 10),
           action: 'SUBSCRIPTION_CREATE',
           details: `Neues Abonnement erstellt und Token-Nutzung ${block ? 'gesperrt' : 'freigegeben'}`,
           oldValue: 'Kein Abonnement',

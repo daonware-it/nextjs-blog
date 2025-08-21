@@ -1,14 +1,12 @@
 import { getServerSession } from "next-auth/next";
-import authOptions from "./auth/[...nextauth]";
+import { authOptions } from "./auth/[...nextauth]";
 import { PrismaClient } from "@prisma/client";
-import { Session } from "next-auth";
-import { NextApiRequest, NextApiResponse } from "next";
 
 const prisma = new PrismaClient();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   try {
-    const session = await getServerSession(req, res, authOptions) as Session | null;
+    const session = await getServerSession(req, res, authOptions);
     if (!session || !session.user?.email) {
       return res.status(401).json({ error: "Nicht eingeloggt" });
     }

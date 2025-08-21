@@ -35,8 +35,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // Benutzer-ID aus dem Token extrahieren
-    // const userId = token.id; // entfernt, da ungenutzt
-
+    const userId = token.id;
+    
     // Da wir in der Middleware keinen direkten Datenbankzugriff haben (Edge-Runtime),
     // müssen wir eine separate API-Route für den Benutzerstatus verwenden
     // SSRF-Schutz: Nur interne API-URL mit eigener Origin verwenden

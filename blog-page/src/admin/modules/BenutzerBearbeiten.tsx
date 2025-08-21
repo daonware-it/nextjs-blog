@@ -649,10 +649,10 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                                   const oldTokens = aboInfo.aiRemaining || 0;
                                   const newTokens = parseInt(tokenInput, 10) || 0;
                                   const tokenDiff = newTokens - oldTokens;
-
+                                  
+                                  let message = '';
                                   let type = 'info';
-                                  let message: string;
-
+                                  
                                   if (tokenDiff > 0) {
                                     message = `Ein Administrator hat Ihnen ${tokenDiff} zusätzliche Tokens zugeteilt. Neue Gesamtanzahl: ${newTokens}`;
                                     type = 'success';

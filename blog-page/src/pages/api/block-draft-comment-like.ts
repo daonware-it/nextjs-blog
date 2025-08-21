@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getClientIp } from '@/lib/rateLimit';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "userId fehlt oder ist keine Zahl" });
   }
   try {
-    const ip = getClientIp(req);
+    const ip = req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.socket.remoteAddress || "";
     const existing = await prisma.blockDraftCommentLike.findFirst({
       where: { commentId: Number(commentId), userId: Number(userId) },
     });

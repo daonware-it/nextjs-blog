@@ -1,71 +1,144 @@
-import NextAuth from "next-auth/next";
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error("NEXTAUTH_SECRET muss als Umgebungsvariable gesetzt sein!");
+}
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const authOptions: any = {
+const rateLimit: Record<string, { count: number; last: number }> = {};
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 10 * 60 * 1000;
+
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "E-Mail", type: "email" },
-        password: { label: "Passwort", type: "password" },
-        twoFactorCode: { label: "2FA-Code", type: "text" },
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+        twoFactorCode: { label: "2FA Code", type: "text", optional: true },
       },
-      async authorize(credentials) {
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-        if (!user) return null;
-        // Passwort prüfen (hier nur Beispiel, sichere Hash-Prüfung nötig!)
-        if (user.password !== credentials.password) return null;
-        // 2FA prüfen, falls aktiviert
-        if (user.twoFactorEnabled) {
-          if (!credentials.twoFactorCode) {
-            // 2FA erforderlich, aber kein Code eingegeben
-            return null;
+      async authorize(credentials: Record<"email" | "password" | "twoFactorCode", string> | undefined, req) {
+        try {
+          const ip = typeof req.headers["x-forwarded-for"] === "string"
+            ? req.headers["x-forwarded-for"]
+            : Array.isArray(req.headers["x-forwarded-for"])
+              ? req.headers["x-forwarded-for"][0]
+              : "unknown";
+          const now = Date.now();
+          if (!rateLimit[ip]) rateLimit[ip] = { count: 0, last: now };
+          if (now - rateLimit[ip].last > WINDOW_MS) {
+            rateLimit[ip] = { count: 0, last: now };
           }
-          if (!user.twoFactorSecret) return null;
-          // Beispiel: Recovery-Codes prüfen
-          if (Array.isArray(user.recoveryCodes) && user.recoveryCodes.includes(credentials.twoFactorCode)) {
-            // Recovery-Code entfernen
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { recoveryCodes: user.recoveryCodes.filter((c: string) => c !== credentials.twoFactorCode) },
+          rateLimit[ip].count++;
+          if (rateLimit[ip].count > MAX_ATTEMPTS) {
+            throw new Error("Zu viele Login-Versuche. Bitte warte kurz.");
+          }
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Login fehlgeschlagen.");
+          }
+          
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+          
+          if (!user) {
+            throw new Error("Login fehlgeschlagen.");
+          }
+
+          const userStatus = await prisma.$queryRaw`SELECT status FROM "User" WHERE id = ${Number(user.id)}`;
+          if (userStatus && Array.isArray(userStatus) && userStatus.length > 0 && userStatus[0].status === 'BANNED') {
+            throw new Error("Ihr Konto wurde gesperrt. Bitte kontaktieren Sie den Support.");
+          }
+
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) {
+            throw new Error("Login fehlgeschlagen.");
+          }
+
+          if (!user.isVerified) {
+            const error: any = new Error("not_verified");
+            error.code = "not_verified";
+            throw error;
+          }
+
+          if (user.twoFactorEnabled) {
+            const code = credentials.twoFactorCode;
+            if (!code) {
+              throw new Error("2FA erforderlich");
+            }
+            const speakeasy = require("speakeasy");
+            const verified = speakeasy.totp.verify({
+              secret: user.twoFactorSecret,
+              encoding: "base32",
+              token: code,
+              window: 1,
             });
-            return { ...user, id: String(user.id) };
+            if (!verified) {
+              throw new Error("Ungültiger 2FA-Code");
+            }
           }
-          // TOTP/2FA-Code prüfen (z.B. mit speakeasy)
-          // Hier kann z.B. speakeasy.totp.verify verwendet werden
-          // if (!verify2FACode(user.twoFactorSecret, credentials.twoFactorCode)) return null;
+          return {
+            id: String(user.id),
+            email: user.email,
+            name: user.name,
+            username: user.username,
+            role: user.role,
+            permissions: user.permissions,
+            createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : String(user.createdAt),
+          };
+        } catch (error) {
+          console.error("Fehler bei der Authentifizierung:", error);
+          throw error;
         }
-        return { ...user, id: String(user.id) };
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
-      return token;
+  session: {
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60,
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+      },
     },
+  },
+  callbacks: {
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        (session.user as any).id = token.id;
+        (session.user as any).role = token.role;
+        (session.user as any).permissions = token.permissions;
+        (session.user as any).username = token.username;
+        (session.user as any).createdAt = token.createdAt;
       }
       return session;
     },
-  },
-  session: {
-    strategy: "jwt",
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
+        token.permissions = (user as any).permissions;
+        token.username = (user as any).username;
+        token.createdAt = (user as any).createdAt;
+      }
+      return token;
+    },
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
+  debug: process.env.NODE_ENV === "development",
 };
-
 export default NextAuth(authOptions);

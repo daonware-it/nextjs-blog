@@ -1,4 +1,3 @@
-import React from 'react';
 import TextBlockEdit from './blocks/TextBlockEdit';
 import HeadingBlockEdit from './blocks/HeadingBlockEdit';
 import QuoteBlockEdit from './blocks/QuoteBlockEdit';

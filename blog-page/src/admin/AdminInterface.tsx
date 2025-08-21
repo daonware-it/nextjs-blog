@@ -1,14 +1,13 @@
 ﻿import React, { useState, useEffect } from 'react';
 import AdminCommentList from './AdminCommentList';
 import AdminBlogList from './AdminBlogList';
-import AdminEmailTemplates from './AdminEmailTemplates';
 import { useSession, signIn } from 'next-auth/react';
-import type { Session } from "next-auth";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import styles from './admin.module.css';
 import { getTicketStats } from './ticket-stats';
 import Head from 'next/head';
+
 
 import {
   Dashboard,
@@ -16,7 +15,9 @@ import {
   Kategorien,
   Tickets,
   Debug,
-  Verlauf
+  Verlauf,
+  AdminEmailTemplateEditor,
+  AdminOpenAIBilling
 } from './modules';
 
 
@@ -35,7 +36,7 @@ interface DashboardStats {
 }
 
 const AdminInterface: React.FC = () => {
-  const { data: session, status } = useSession() as { data: Session | null, status: string };
+  const { data: session, status } = useSession();
   const [selectedMenu, setSelectedMenu] = useState('dashboard');
   const [stats, setStats] = useState<DashboardStats>({
     isLoading: true,
@@ -98,7 +99,10 @@ const AdminInterface: React.FC = () => {
     };
 
     if (selectedMenu === 'dashboard' && session) {
-      (async () => { await loadDashboardStats(); })();
+      const loadStats = async () => {
+        await loadDashboardStats();
+      };
+      loadStats();
     }
   }, [selectedMenu, session]);
 
@@ -125,7 +129,10 @@ const AdminInterface: React.FC = () => {
     };
 
     if (selectedMenu === 'tickets' && session) {
-      (async () => { await loadTicketStats(); })();
+      const loadStats = async () => {
+        await loadTicketStats();
+      };
+      loadStats();
     }
   }, [selectedMenu, session]);
 
@@ -184,7 +191,8 @@ const AdminInterface: React.FC = () => {
             selectedMenu === 'system' ? 'Systemeinstellungen' :
             selectedMenu === 'analytics' ? 'Statistiken & Berichte' :
             selectedMenu === 'debug' ? 'Debug & Diagnose' :
-            selectedMenu === 'emailtemplates' ? 'E-Mail-Vorlage' :
+            selectedMenu === 'emailTemplates' ? 'E-Mail-Templates' :
+            selectedMenu === 'openai-billing' ? 'OpenAI Statistik & Information' :
             'Unbekannter Bereich'
           }`}
         </title>
@@ -353,14 +361,27 @@ const AdminInterface: React.FC = () => {
               </li>
               <li>
                 <button
-                  className={`${styles.adminNavItem} ${selectedMenu === 'emailtemplates' ? styles.active : ''}`}
-                  onClick={() => setSelectedMenu('emailtemplates')}
+                  className={`${styles.adminNavItem} ${selectedMenu === 'emailTemplates' ? styles.active : ''}`}
+                  onClick={() => setSelectedMenu('emailTemplates')}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
-                    <polyline points="22,6 12,13 2,6"></polyline>
+                    <path d="M4 4h16v16H4z"></path>
+                    <path d="M4 8h16"></path>
+                    <path d="M8 4v4"></path>
                   </svg>
-                  E-Mail-Vorlagen
+                  E-Mail-Templates
+                </button>
+              </li>
+              <li>
+                <button
+                  className={`${styles.adminNavItem} ${selectedMenu === 'openai-billing' ? styles.active : ''}`}
+                  onClick={() => setSelectedMenu('openai-billing')}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" textAnchor="middle" fontSize="10" fill="#1976d2">AI</text>
+                  </svg>
+                  OpenAI Statistik & Information
                 </button>
               </li>
             </ul>
@@ -383,12 +404,13 @@ const AdminInterface: React.FC = () => {
               {selectedMenu === 'system' && 'Systemeinstellungen'}
               {selectedMenu === 'analytics' && 'Statistiken & Berichte'}
               {selectedMenu === 'debug' && 'Debug & Diagnose'}
-              {selectedMenu === 'emailtemplates' && 'E-Mail-Vorlage'}
+              {selectedMenu === 'emailTemplates' && 'E-Mail-Templates'}
+              {selectedMenu === 'openai-billing' && 'OpenAI Statistik & Information'}
             </h1>
             
             {/* Dashboard Ansicht */}
             {selectedMenu === 'dashboard' && <Dashboard stats={stats} />}
-            
+
             {/* Benutzerverwaltung */}
             {selectedMenu === 'user' && <Benutzerverwaltung ensureSession={ensureSession} />}
             
@@ -426,8 +448,7 @@ const AdminInterface: React.FC = () => {
             {selectedMenu === 'system' && (
               <div className={styles.adminSection}>
                 <h2 className={styles.adminSectionTitle}>Systemeinstellungen</h2>
-                <p>Hier können Sie Wartungsfunktionen und Systemeinstellungen verwalten.</p>
-                <CleanupBlockDraftsButton />
+                <p>Hier können Sie grundlegende Einstellungen der Webseite anpassen.</p>
               </div>
             )}
             
@@ -462,8 +483,19 @@ const AdminInterface: React.FC = () => {
               </div>
             )}
 
-            {selectedMenu === 'emailtemplates' && (
-              <AdminEmailTemplates />
+            {selectedMenu === 'emailTemplates' && (
+              <div className={styles.adminSection}>
+                <h2 className={styles.adminSectionTitle}>E-Mail-Templates</h2>
+                <p>Hier können Sie die Vorlagen für E-Mails verwalten, die an Benutzer gesendet werden.</p>
+                <AdminEmailTemplateEditor />
+              </div>
+            )}
+
+            {selectedMenu === 'openai-billing' && (
+              <div className={styles.adminSection}>
+                <h2 className={styles.adminSectionTitle}>OpenAI Statistik & Information</h2>
+                <AdminOpenAIBilling />
+              </div>
             )}
           </div>
         </div>
@@ -474,47 +506,3 @@ const AdminInterface: React.FC = () => {
 };
 
 export default AdminInterface;
-
-// Button-Komponente am Ende der Datei ergänzen
-const CleanupBlockDraftsButton: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-
-  const handleCleanup = async () => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const res = await fetch('/api/admin/cleanup-blockdrafts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setResult(data.message);
-      } else {
-        setResult(data.error || 'Fehler beim Löschen.');
-      }
-    } catch (err) {
-      setResult('Serverfehler.');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div style={{ marginTop: 32 }}>
-      <button
-        className={styles.adminButton}
-        onClick={handleCleanup}
-        disabled={loading}
-        style={{ background: '#dc3545', color: '#fff', fontWeight: 600 }}
-      >
-        {loading ? 'Lösche...' : 'Alte BlockDrafts löschen'}
-      </button>
-      {result && (
-        <div style={{ marginTop: 16, color: result.includes('Fehler') ? '#dc3545' : '#28a745', fontWeight: 500 }}>
-          {result}
-        </div>
-      )}
-    </div>
-  );
-};

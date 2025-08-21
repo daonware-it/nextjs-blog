@@ -1,8 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { sendMail } from '@/lib/mail';
-import { emailVerificationTemplate } from '@/lib/mailTemplates';
-import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET_KEY;
@@ -12,7 +9,7 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
-    const { email, password, name, username, captchaToken } = req.body;
+    const { email, password, name, fullName, username, captchaToken } = req.body;
     if (!email || !password || !username) {
       return res.status(400).json({ error: 'Email, Benutzername und Passwort erforderlich' });
     }
@@ -32,9 +29,6 @@ export default async function handler(req, res) {
       return res.status(409).json({ error: 'Registrierung nicht möglich. Bitte überprüfe deine Eingaben.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Verifizierungscode generieren
-    const verificationCode = crypto.randomInt(100000, 999999).toString();
-    const codeExpires = new Date(Date.now() + 1000 * 60 * 30); // 30 Minuten gültig
     const createdUser = await prisma.user.create({
       data: {
         email,
@@ -43,18 +37,7 @@ export default async function handler(req, res) {
         username,
         role: 'LESER',
         permissions: [],
-        emailVerified: false,
-        emailVerificationCode: verificationCode,
-        emailVerificationCodeExpires: codeExpires,
       }
-    });
-    // E-Mail mit schönem HTML-Template versenden
-    const mail = emailVerificationTemplate({ verificationCode });
-    await sendMail({
-      to: email,
-      subject: mail.subject,
-      text: mail.text,
-      html: mail.html,
     });
     const user = await prisma.user.findUnique({
       where: { id: createdUser.id },

@@ -1,13 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../auth/[...nextauth]';
-import { prisma } from 'lib/prisma';
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../../lib/prisma';
 import { Prisma } from '@prisma/client';
-import { Session } from "next-auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Session prüfen
-  const session = await getServerSession(req, res, authOptions) as Session | null;
+  const session = await getServerSession(req, res, authOptions);
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MODERATOR')) {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }
@@ -28,13 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Status-Filter (wird später auf die Status-Rohdaten angewendet)
-      let statusFilter: string | undefined;
+      let statusFilter = null;
       if (status) {
         statusFilter = status;
       }
       
       // Sortierung festlegen
-      let orderBy: any;
+      let orderBy: any = {};
       switch (sortBy) {
         case 'oldest':
           orderBy = { createdAt: 'asc' };

@@ -46,9 +46,7 @@ const BenutzerAuditLog: React.FC<BenutzerAuditLogProps> = ({ userId }) => {
 
   useEffect(() => {
     if (userId) {
-      (async () => {
-        await fetchAuditLogs(1);
-      })();
+      fetchAuditLogs(1);
     }
   }, [userId]);
 
@@ -57,9 +55,7 @@ const BenutzerAuditLog: React.FC<BenutzerAuditLogProps> = ({ userId }) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/auditlog?page=${page}&pageSize=20`);
       if (!response.ok) {
-        setError('Fehler beim Abrufen der Audit-Logs');
-        setLoading(false);
-        return;
+        throw new Error('Fehler beim Abrufen der Audit-Logs');
       }
       
       const data: AuditLogResponse = await response.json();
@@ -73,9 +69,9 @@ const BenutzerAuditLog: React.FC<BenutzerAuditLogProps> = ({ userId }) => {
     }
   };
 
-  const handlePageChange = async (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
-      await fetchAuditLogs(newPage);
+      fetchAuditLogs(newPage);
     }
   };
 

@@ -25,8 +25,7 @@ export default function UserHistoryView() {
         const res = await fetch('/api/profile-history');
         
         if (!res.ok) {
-          setError('Fehler beim Laden der Benutzerhistorie');
-          return;
+          throw new Error('Fehler beim Laden der Benutzerhistorie');
         }
         
         const data = await res.json();

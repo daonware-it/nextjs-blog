@@ -1,8 +1,4 @@
-import { useEffect, useState } from "react";
-import navbarStyles from "./navbar.module.css";
-import { useSession, signOut } from "next-auth/react";
-import type { Session } from "next-auth";
-
+import React, { useEffect } from "react";
 // Google Fonts für moderne Schrift überall einbinden
 function useGlobalFonts() {
   useEffect(() => {
@@ -17,6 +13,12 @@ function useGlobalFonts() {
     }
   }, []);
 }
+import navbarStyles from "./navbar.module.css";
+import { useSession, signOut } from "next-auth/react";
+import type { Session } from "next-auth";
+
+
+import { useState } from "react";
 
 export default function Navbar() {
   useGlobalFonts();

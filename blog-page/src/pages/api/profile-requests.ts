@@ -1,21 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from './auth/[...nextauth]';
+import { authOptions } from './auth/[...nextauth]';
 import { PrismaClient } from '@prisma/client';
-import { Session } from "next-auth";
 
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Sitzung abrufen und Authentifizierung prüfen
-    const session = await getServerSession(req, res, authOptions) as Session | null;
+    const session = await getServerSession(req, res, authOptions);
     if (!session) {
       return res.status(401).json({ error: 'Nicht authentifiziert' });
     }
 
     // Benutzer-ID aus der Session abrufen
-    const email = session.user?.email;
+    const email = (session.user as any).email;
     if (!email) {
       return res.status(400).json({ error: 'E-Mail nicht gefunden' });
     }

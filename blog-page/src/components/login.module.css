@@ -41,7 +41,7 @@
   font-weight: 700;
   margin-bottom: 8px;
   color: #222;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   font-family: 'Poppins', 'Inter', Arial, sans-serif;
 }
 
@@ -50,7 +50,7 @@
   color: #7f8c8d;
   margin-bottom: 30px;
   font-weight: 500;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   font-family: 'Inter', 'Poppins', Arial, sans-serif;
 }
 
@@ -66,7 +66,7 @@
   color: #444;
   margin-bottom: 8px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.3px;
   font-family: 'Inter', 'Poppins', Arial, sans-serif;
 }
 
@@ -167,7 +167,7 @@
 
 .loginButton {
   width: 100%;
-  padding: 12px 0;
+  padding: 12px 0px;
   background: linear-gradient(to right, #007bff 0%, #0056b3 100%);
   color: #fff;
   border: none;
@@ -175,7 +175,7 @@
   font-size: 18px;
   font-weight: 700;
   font-family: 'Poppins', 'Inter', Arial, sans-serif;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);
@@ -210,6 +210,77 @@
 .signupAnchor:hover {
   text-decoration: underline;
   color: #0056b3;
+}
+
+.verifyModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 42, 60, 0.18);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verifyModal {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.13);
+  padding: 40px 32px 32px 32px;
+  min-width: 340px;
+  max-width: 90vw;
+  text-align: center;
+  position: relative;
+}
+
+.verifyModalTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 18px;
+}
+
+.verifyModalDesc {
+  font-size: 15px;
+  color: #444;
+  margin-bottom: 18px;
+}
+
+.verifyModalInput {
+  width: 80%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.verifyModalButton {
+  padding: 10px 32px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 17px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(25,118,210,0.10);
+  margin-top: 8px;
+}
+
+.verifyModalError {
+  color: #d32f2f;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.verifyModalSuccess {
+  color: #388e3c;
+  font-size: 15px;
+  margin-top: 10px;
 }
 
 @media (max-width: 480px) {

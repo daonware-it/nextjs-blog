@@ -5,7 +5,6 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import styles from "../blogs.module.css";
 import BlockPreview from "../../components/blockeditor/BlockPreview";
-import type { Session } from "next-auth";
 
 // Flaggen-Icon als Komponente (YouTube-Stil)
 const FlagIcon = ({ size = 20, color = '#888', style = {} }) => (
@@ -50,7 +49,7 @@ export default function BlogDetailPage() {
   
   const router = useRouter();
   const { id } = router.query;
-  const { data: session } = useSession() as { data: Session | null };
+  const { data: session } = useSession();
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<any[]>([]);

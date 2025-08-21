@@ -1,3 +1,12 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model BlockDraftReport {
   id           Int        @id @default(autoincrement())
   blockDraftId Int
@@ -20,8 +29,8 @@ model BlockDraftLike {
   blockDraftId Int
   createdAt    DateTime   @default(now())
   ip           String?    @db.VarChar(64)
-  user         User       @relation("UserBlockDraftLikes", fields: [userId], references: [id])
   blockDraft   BlockDraft @relation("BlockDraftLikes", fields: [blockDraftId], references: [id])
+  user         User       @relation("UserBlockDraftLikes", fields: [userId], references: [id])
 
   @@unique([userId, blockDraftId])
 }
@@ -32,8 +41,8 @@ model BlockDraftCommentLike {
   commentId Int
   createdAt DateTime          @default(now())
   ip        String?           @db.VarChar(64)
-  user      User              @relation("UserBlockDraftCommentLikes", fields: [userId], references: [id])
   comment   BlockDraftComment @relation("BlockDraftCommentLikes", fields: [commentId], references: [id])
+  user      User              @relation("UserBlockDraftCommentLikes", fields: [userId], references: [id])
 
   @@unique([userId, commentId])
 }
@@ -44,22 +53,13 @@ model BlockDraftComment {
   blockDraftId             Int
   content                  String
   createdAt                DateTime                  @default(now())
-  user                     User                      @relation("UserBlockDraftComments", fields: [userId], references: [id])
-  blockDraft               BlockDraft                @relation("BlockDraftComments", fields: [blockDraftId], references: [id])
-  blockDraftCommentReports BlockDraftCommentReport[] @relation("BlockDraftCommentToReport")
-  likes                    BlockDraftCommentLike[]   @relation("BlockDraftCommentLikes")
   parentCommentId          Int?
+  blockDraft               BlockDraft                @relation("BlockDraftComments", fields: [blockDraftId], references: [id])
   parent                   BlockDraftComment?        @relation("BlockDraftCommentReplies", fields: [parentCommentId], references: [id])
   replies                  BlockDraftComment[]       @relation("BlockDraftCommentReplies")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  user                     User                      @relation("UserBlockDraftComments", fields: [userId], references: [id])
+  likes                    BlockDraftCommentLike[]   @relation("BlockDraftCommentLikes")
+  blockDraftCommentReports BlockDraftCommentReport[] @relation("BlockDraftCommentToReport")
 }
 
 model Newsletter {
@@ -69,41 +69,40 @@ model Newsletter {
 }
 
 model User {
-  id                     Int                     @id @default(autoincrement())
-  email                  String                  @unique
-  password               String
-  name                   String?
-  permissions            String[]                @default([])
-  username               String?                 @unique
-  createdAt              DateTime                @default(now())
-  lastEmailChange        DateTime?
-  lastUsernameChange     DateTime?
-  avatarUrl              String?
-  updatedAt              DateTime                @default(now()) @updatedAt
-  role                   String                  @default("LESER")
-  twoFactorEnabled       Boolean                 @default(false)
-  twoFactorSecret        String?
-  status                 String                  @default("ACTIVE")
-  aiRequests             AiRequest[]
-  adminAuditLogs         AuditLog[]              @relation("AdminAuditLogs")
-  auditLogs              AuditLog[]              @relation("UserAuditLogs")
-  blockDraftsAsCoAuthor  BlockDraft[]            @relation("BlockDraftCoAuthor")
-  blockDrafts            BlockDraft[]
-  blockDraftLikes        BlockDraftLike[]        @relation("UserBlockDraftLikes")
-  blockDraftComments     BlockDraftComment[]     @relation("UserBlockDraftComments")
-  emailHistory           EmailHistory[]
-  notifications          Notification[]
-  posts                  Post[]
-  subscriptions          UserSubscription[]
-  usernameHistory        UsernameHistory[]
-  newsletters            Newsletter[]            @relation("NewsletterToUser")
-  blockDraftCommentLikes BlockDraftCommentLike[] @relation("UserBlockDraftCommentLikes")
-  emailVerified           Boolean                 @default(false)
-  emailVerificationCode   String?
-  emailVerificationCodeExpires DateTime?
-  passwordResetCode           String?
-  passwordResetCodeExpires    DateTime?
-  recoveryCodes          String[]
+  id                       Int                     @id @default(autoincrement())
+  email                    String                  @unique
+  password                 String
+  name                     String?
+  permissions              String[]                @default([])
+  username                 String?                 @unique
+  createdAt                DateTime                @default(now())
+  lastEmailChange          DateTime?
+  lastUsernameChange       DateTime?
+  avatarUrl                String?
+  updatedAt                DateTime                @default(now()) @updatedAt
+  role                     String                  @default("LESER")
+  twoFactorEnabled         Boolean                 @default(false)
+  twoFactorSecret          String?
+  status                   String                  @default("ACTIVE")
+  aiRequests               AiRequest[]
+  adminAuditLogs           AuditLog[]              @relation("AdminAuditLogs")
+  auditLogs                AuditLog[]              @relation("UserAuditLogs")
+  blockDraftsAsCoAuthor    BlockDraft[]            @relation("BlockDraftCoAuthor")
+  blockDrafts              BlockDraft[]
+  blockDraftComments       BlockDraftComment[]     @relation("UserBlockDraftComments")
+  blockDraftCommentLikes   BlockDraftCommentLike[] @relation("UserBlockDraftCommentLikes")
+  blockDraftLikes          BlockDraftLike[]        @relation("UserBlockDraftLikes")
+  emailHistory             EmailHistory[]
+  notifications            Notification[]
+  posts                    Post[]
+  subscriptions            UserSubscription[]
+  usernameHistory          UsernameHistory[]
+  newsletters              Newsletter[]            @relation("NewsletterToUser")
+  resetPasswordToken       String?
+  resetPasswordTokenExpiry DateTime?
+  verificationCode         String?
+  verificationCodeExpiry   DateTime?
+  isVerified               Boolean                 @default(false)
 }
 
 model AiRequest {
@@ -170,7 +169,6 @@ model Post {
 }
 
 model BlockDraft {
-  blockDraftReports BlockDraftReport[]  @relation("BlockDraftToReport")
   id                Int                 @id @default(autoincrement())
   userId            Int
   blocks            Json
@@ -185,8 +183,9 @@ model BlockDraft {
   category          Category?           @relation(fields: [categoryId], references: [id])
   coAuthor          User?               @relation("BlockDraftCoAuthor", fields: [coAuthorId], references: [id])
   user              User                @relation(fields: [userId], references: [id])
-  likes             BlockDraftLike[]    @relation("BlockDraftLikes")
   comments          BlockDraftComment[] @relation("BlockDraftComments")
+  likes             BlockDraftLike[]    @relation("BlockDraftLikes")
+  blockDraftReports BlockDraftReport[]  @relation("BlockDraftToReport")
 }
 
 model Notification {
@@ -208,10 +207,10 @@ model Category {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   parentId    Int?
+  blockDrafts BlockDraft[]
   parent      Category?    @relation("CategoryHierarchy", fields: [parentId], references: [id])
   children    Category[]   @relation("CategoryHierarchy")
   posts       Post[]       @relation("PostToCategory")
-  blockDrafts BlockDraft[]
 }
 
 model AuditLog {
@@ -228,11 +227,10 @@ model AuditLog {
 }
 
 model EmailTemplate {
-  id      Int    @id @default(autoincrement())
-  type    String @unique
-  subject String?
-  text    String?
-  html    String
+  id        Int      @id @default(autoincrement())
+  type      String   @unique
+  content   String
+  updatedAt DateTime @updatedAt
 }
 
 enum UserStatus {

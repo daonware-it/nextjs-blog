@@ -1,13 +1,12 @@
 import * as React from "react";
 import Head from "next/head";
-import styles from '@/components/login.module.css';
+import styles from "../components/login.module.css";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import Modal from "@/components/Modal"; // Modal-Komponente (muss ggf. erstellt werden)
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,9 +14,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [show2FAModal, setShow2FAModal] = useState(false);
-  const [pendingCredentials, setPendingCredentials] = useState<{email: string, password: string} | null>(null);
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [verifySuccess, setVerifySuccess] = useState("");
+  const [requestingCode, setRequestingCode] = useState(false);
+  const [requestCodeMsg, setRequestCodeMsg] = useState("");
   const { data: session } = useSession();
   
   // Beim Laden der Seite überprüfen, ob es einen Fehlerparameter in der URL gibt
@@ -40,52 +42,64 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    // Sende nur E-Mail und Passwort
+    setShowVerifyDialog(false);
     const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
     });
     setLoading(false);
-    // Prüfe, ob CredentialsSignin-Fehler und ob 2FA aktiviert ist
-    if (res?.error === "CredentialsSignin") {
-      // 2FA-Status abfragen
-      try {
-        const resp = await fetch(`/api/user/2fa-status?email=${encodeURIComponent(email)}`);
-        const data = await resp.json();
-        if (data.is2faEnabled) {
-          setPendingCredentials({ email, password });
-          setShow2FAModal(true);
-          return;
-        }
-      } catch (err) {
-        // Fehler beim API-Call
+    if (res?.error) {
+      if (res.error === "not_verified") {
+        setShowVerifyDialog(true);
+      } else {
+        setError(res.error);
       }
-      setError("Anmeldung fehlgeschlagen.");
-    } else if (res?.error) {
-      setError(typeof res.error === "string" ? res.error : "Anmeldung fehlgeschlagen.");
     } else {
       window.location.reload();
     }
   };
 
-  const handle2FASubmit = async () => {
-    if (!pendingCredentials) return;
-    setLoading(true);
-    setError("");
-    const res = await signIn("credentials", {
-      redirect: false,
-      email: pendingCredentials.email,
-      password: pendingCredentials.password,
-      twoFactorCode,
-    });
-    setLoading(false);
-    if (res?.error) {
-      setError(res.error);
-    } else {
-      setShow2FAModal(false);
-      window.location.reload();
+  const handleVerify = async () => {
+    setVerifyError("");
+    setVerifySuccess("");
+    try {
+      const response = await fetch("/api/auth/verify-email", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setVerifySuccess("Verifizierung erfolgreich! Bitte logge dich erneut ein.");
+        setShowVerifyDialog(false);
+      } else {
+        setVerifyError(data.error || "Verifizierung fehlgeschlagen.");
+      }
+    } catch (err) {
+      setVerifyError("Netzwerkfehler.");
     }
+  };
+
+  const handleRequestNewCode = async () => {
+    setRequestingCode(true);
+    setRequestCodeMsg("");
+    try {
+      const response = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setRequestCodeMsg("Neuer Code wurde verschickt!");
+      } else {
+        setRequestCodeMsg(data.error || "Fehler beim Versenden des Codes.");
+      }
+    } catch (err) {
+      setRequestCodeMsg("Netzwerkfehler.");
+    }
+    setRequestingCode(false);
   };
 
   return (
@@ -166,39 +180,49 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-            <button
-              type="button"
-              className={styles.loginButton}
-              style={{ marginTop: 16, background: '#f5f5f5', color: '#007bff', border: '1px solid #007bff' }}
-              onClick={() => window.location.href = '/register'}
-            >
-              Noch keinen Account? Jetzt registrieren
-            </button>
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <a href="/forgot-password" style={{ color: '#007bff', textDecoration: 'underline', fontWeight: 500 }}>
-                Passwort vergessen?
-              </a>
+            {showVerifyDialog && (
+              <div className={styles.verifyModalOverlay}>
+                <div className={styles.verifyModal}>
+                  <div className={styles.verifyModalTitle}>Konto verifizieren</div>
+                  <div className={styles.verifyModalDesc}>
+                    Bitte gib den Verifizierungscode ein, den du per E-Mail erhalten hast.
+                  </div>
+                  <input
+                    type="text"
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleVerify();
+                      }
+                    }}
+                    placeholder="Verifizierungscode"
+                    className={styles.verifyModalInput}
+                  />
+                  <button type="button" onClick={handleVerify} className={styles.verifyModalButton}>Verifizieren</button>
+                  <button
+                    type="button"
+                    onClick={handleRequestNewCode}
+                    className={styles.verifyModalButton}
+                    style={{ background: '#fff', color: '#1976d2', border: '1px solid #1976d2', marginLeft: 10 }}
+                    disabled={requestingCode}
+                  >
+                    {requestingCode ? "Wird versendet..." : "Neuen Code anfordern"}
+                  </button>
+                  {requestCodeMsg && <div style={{ marginTop: 8, color: requestCodeMsg.includes('verschickt') ? '#388e3c' : '#d32f2f', fontSize: 15 }}>{requestCodeMsg}</div>}
+                  {verifyError && <div className={styles.verifyModalError}>{verifyError}</div>}
+                  {verifySuccess && <div className={styles.verifyModalSuccess}>{verifySuccess}</div>}
+                </div>
+              </div>
+            )}
+            <div className={styles.signupLink}>
+              Noch kein Konto? <a href="/register" className={styles.signupAnchor}>Registrieren</a>
             </div>
           </div>
         </div>
         <Footer />
       </div>
-      {show2FAModal && (
-        <Modal onClose={() => setShow2FAModal(false)}>
-          <h2>2FA-Code erforderlich</h2>
-          <input
-            type="text"
-            placeholder="2FA-Code"
-            value={twoFactorCode}
-            onChange={e => setTwoFactorCode(e.target.value)}
-            className={styles.inputField}
-          />
-          <button onClick={handle2FASubmit} disabled={loading} className={styles.loginButton}>
-            {loading ? "Wird verarbeitet..." : "Bestätigen"}
-          </button>
-          {error && <div className={styles.errorMessage}>{error}</div>}
-        </Modal>
-      )}
     </>
   );
 }
