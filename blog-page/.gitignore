@@ -103,5 +103,6 @@ node_modules
 *.bak
 *.swp
 *.swo
+zip-project.js
 # VS Code
 .vscode/

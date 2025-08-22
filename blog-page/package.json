@@ -28,6 +28,7 @@
     "@types/highlight.js": "^9.12.4",
     "@types/jsonwebtoken": "^9.0.10",
     "adm-zip": "^0.5.10",
+    "archiver": "^7.0.1",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",

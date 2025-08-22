@@ -62,7 +62,7 @@ Für vollständige Konfiguration siehe die Dokumentation im `docs/`-Ordner.
 ### 🔖 Version
 
 
-Aktuelle Version `v0.1.0`  
+Aktuelle Version `v0.2.0`  
 🧪 Status: `In Entwicklung`
 
 [📋 Zum Entwicklungs-Board (Trello)](https://trello.com/b/WhAYVSHT)
