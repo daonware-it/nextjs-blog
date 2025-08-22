@@ -1,14 +1,31 @@
-import { rateLimit } from '@/lib/rateLimit';
+// Einfache In-Memory-Rate-Limit-Middleware (max. 5 Anfragen/Minute pro IP)
+const rateLimitMap = new Map<string, { count: number; last: number }>();
+function rateLimit(req: NextApiRequest, res: NextApiResponse, max = 5, windowMs = 60_000) {
+  const ip = req.headers['x-forwarded-for']?.toString().split(',')[0] || req.socket.remoteAddress || '';
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, last: now };
+  if (now - entry.last > windowMs) {
+    entry.count = 1;
+    entry.last = now;
+  } else {
+    entry.count++;
+  }
+  rateLimitMap.set(ip, entry);
+  if (entry.count > max) {
+    res.status(429).json({ error: 'Zu viele Anfragen. Bitte warte kurz.' });
+    return true;
+  }
+  return false;
+}
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../../auth/[...nextauth]';
-import { prisma } from '@/lib/prisma';
-import { Session } from "next-auth";
+import { authOptions } from '../../auth/[...nextauth]';
+import prisma from '../../../../../lib/prisma';
 
 // deepcode ignore NoRateLimitingForExpensiveWebOperation: <please specify a reason of ignoring this>
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (rateLimit(req, res)) return;
-  const session = await getServerSession(req, res, authOptions) as Session | null;
+  const session = await getServerSession(req, res, authOptions);
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MODERATOR')) {
     return res.status(401).json({ error: 'Nicht autorisiert' });
   }

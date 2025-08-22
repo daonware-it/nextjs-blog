@@ -1,35 +1,32 @@
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  const { email, code, newPassword } = req.body;
-  if (!email || !code || !newPassword) {
-    return res.status(400).json({ error: 'E-Mail, Code und neues Passwort erforderlich.' });
-  }
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !user.passwordResetCode || !user.passwordResetCodeExpires) {
-    return res.status(400).json({ error: 'Ungültiger Reset-Code.' });
-  }
-  if (new Date() > user.passwordResetCodeExpires) {
-    return res.status(400).json({ error: 'Reset-Code abgelaufen.' });
-  }
-  if (user.passwordResetCode !== code) {
-    return res.status(400).json({ error: 'Reset-Code ungültig.' });
-  }
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  await prisma.user.update({
-    where: { email },
-    data: {
-      password: hashedPassword,
-      passwordResetCode: null,
-      passwordResetCodeExpires: null,
-    }
+  if (req.method !== 'POST') return res.status(405).end();
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: 'Token und Passwort erforderlich.' });
+  if (password.length < 12) return res.status(400).json({ error: 'Das Passwort muss mindestens 12 Zeichen lang sein.' });
+
+  const user = await prisma.user.findFirst({
+    where: {
+      resetPasswordToken: token,
+      resetPasswordTokenExpiry: { gte: new Date() },
+    },
   });
-  return res.status(200).json({ message: 'Passwort erfolgreich zurückgesetzt. Du kannst dich jetzt mit dem neuen Passwort anmelden.' });
+  if (!user) return res.status(400).json({ error: 'Ungültiger oder abgelaufener Token.' });
+
+  const hashed = await bcrypt.hash(password, 10);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashed,
+      resetPasswordToken: null,
+      resetPasswordTokenExpiry: null,
+    },
+  });
+
+  res.status(200).json({ message: 'Passwort erfolgreich geändert.' });
 }
 

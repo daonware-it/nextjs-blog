@@ -1,23 +1,15 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../auth/[...nextauth]';
-import { prisma } from '@/lib/prisma';
-
-interface Session {
-  user: {
-    id: number;
-    email: string;
-    role: string;
-  };
-  expires: string;
-}
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const session = await getServerSession(req, res, authOptions) as Session | null;
-
+    // Sitzungsinformationen abrufen
+    const session = await getServerSession(req, res, authOptions);
+    
     // Prüfen, ob der Benutzer angemeldet und ein Admin ist
-    if (!session || (session.user?.role !== 'ADMIN' && session.user?.role !== 'MODERATOR')) {
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MODERATOR')) {
       return res.status(401).json({ error: 'Nicht autorisiert' });
     }
     
@@ -82,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timestamp,
       session: {
         exists: !!session,
-        userRole: session?.user?.role || 'nicht angemeldet'
+        userRole: session?.user.role || 'nicht angemeldet'
       },
       database: {
         connectionTest,

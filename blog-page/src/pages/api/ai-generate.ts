@@ -1,19 +1,21 @@
-import { getServerSession } from "next-auth/next";
-import { Session } from "next-auth";
+import { getServerSession } from "next-auth";
 import { NextApiRequest, NextApiResponse } from "next";
-import authOptions from "./auth/[...nextauth]";
+import { authOptions } from "./auth/[...nextauth]";
 
-import { prisma } from 'src-lib/prisma';
-import { hasIncludedRequests, decrementIncludedRequests } from 'src/lib/aiQuotaUtils';
+import { PrismaClient } from '@prisma/client';
+import { hasIncludedRequests, decrementIncludedRequests } from '../../lib/aiQuotaUtils';
+
+const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-3.5-turbo";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions) as Session | null;
+  const session = await getServerSession(req, res, authOptions);
   const userEmail = session?.user?.email;
   if (!userEmail) {
     return res.status(401).json({ error: "Nicht eingeloggt" });
   }
 
-  const user = await prisma.user.findUnique({
+  const prisma = new PrismaClient();
+  const user = await prisma.user.findUnique({ 
     where: { email: userEmail },
     //@ts-ignore - status ist im Schema vorhanden, wird aber von TypeScript nicht erkannt
     select: { id: true, status: true } 
@@ -58,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     contextText = text.trim();
   }
 
-  let prompt: string;
+  let prompt = '';
   if (mode === 'title') {
     if (text && mode === 'title' && contextText) {
       prompt = `${text}\n\nHier ist der Inhalt als Kontext:\n${contextText}`;
@@ -156,7 +158,7 @@ Deine Antwort sollte direkt mit dem formatierten HTML beginnen. Verzichte auf Ei
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: OPENAI_MODEL,
         messages: [
           { role: "system", content: "Du bist ein hilfreicher KI-Textgenerator für Blogbeiträge und Content." },
           { role: "user", content: prompt }

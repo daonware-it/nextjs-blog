@@ -85,14 +85,26 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
       fetch(`/api/admin/users/${user.id}`)
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(data => {
-          setAboInfo(data.subscription);
-          // Sperrstatus aus den Daten laden
-          setTokensBlocked(data.subscription?.tokensBlocked === true);
-          
-          // Auch den isActive-Status des Abos berücksichtigen
-          if (data.subscription) {
-            const isActive = data.subscription.status === 'Aktiv';
-            setTokensBlocked(data.subscription.tokensBlocked === true || !isActive);
+          // Fallback für Free-Abo, falls keine subscription vorhanden ist
+          if (!data.subscription) {
+            setAboInfo({
+              name: 'Free',
+              status: 'Aktiv',
+              renewDate: '-',
+              aiQuota: 10,
+              aiUsed: 0,
+              isActive: true,
+              tokensBlocked: false,
+              aiRemaining: 10
+            });
+          } else {
+            setAboInfo(data.subscription);
+            setTokensBlocked(data.subscription?.tokensBlocked === true);
+            // Auch den isActive-Status des Abos berücksichtigen
+            if (data.subscription) {
+              const isActive = data.subscription.status === 'Aktiv';
+              setTokensBlocked(data.subscription.tokensBlocked === true || !isActive);
+            }
           }
         })
         .catch(() => setAboError('Abo-Informationen konnten nicht geladen werden.'))
@@ -362,7 +374,7 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                   ) : (
                     <span style={{color: aboInfo.status==='Aktiv'?'#10b981':'#ef4444'}}>{aboInfo.status}</span>
                   )}<br/>
-                  <b>Verlängerung:</b> {aboInfo.renewDate || '—'}<br/>
+                  <b>Verlängerung:</b> {aboInfo.renewDate ? formatDateDE(aboInfo.renewDate) : '—'}<br/>
                   <b>isActive:</b> <span style={{color: aboInfo.isActive ? '#10b981' : '#ef4444'}}>{aboInfo.isActive ? 'Ja' : 'Nein'}</span>
                 </div>
                 <div style={{width:'100%',marginTop:10}}>
@@ -477,7 +489,7 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                   )}
                   
                   <div style={{display:'flex',alignItems:'center',gap:10}}>
-                    <div style={{fontSize:32,fontWeight:700,color: tokensBlocked ? '#9ca3af' : '#1976d2'}}>{aboInfo.aiQuota ?? 0}</div>
+                    <div style={{fontSize:32,fontWeight:700,color: tokensBlocked ? '#9ca3af' : '#1976d2'}}>{aboInfo.aiRemaining ?? (aboInfo.aiQuota - (aboInfo.aiUsed ?? 0))}</div>
                     <div style={{fontSize:14,color:'#64748b'}}>von {aboInfo.aiQuota ?? 0} im Monat</div>
                     {!tokenEditMode ? (
                       <div style={{marginLeft: 'auto', display: 'flex', gap: 8}}>
@@ -624,6 +636,11 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                         <button
                           type="button"
                           onClick={async () => {
+                            const newTokenValue = parseInt(tokenInput, 10);
+                            if (isNaN(newTokenValue) || newTokenValue < 0 || newTokenValue > (aboInfo.aiQuota ?? 0)) {
+                              alert('Bitte geben Sie eine gültige Token-Anzahl zwischen 0 und ' + (aboInfo.aiQuota ?? 0) + ' ein.');
+                              return;
+                            }
                             try {
                               const response = await fetch(`/api/admin/users/${user?.id}/tokens`, {
                                 method: 'PUT',
@@ -631,7 +648,7 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                                   'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                  quota: parseInt(tokenInput, 10) || 0, // quota statt tokens
+                                  tokens: newTokenValue,
                                   userStatus: form.status
                                 })
                               });
@@ -649,10 +666,10 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
                                   const oldTokens = aboInfo.aiRemaining || 0;
                                   const newTokens = parseInt(tokenInput, 10) || 0;
                                   const tokenDiff = newTokens - oldTokens;
-
+                                  
+                                  let message = '';
                                   let type = 'info';
-                                  let message: string;
-
+                                  
                                   if (tokenDiff > 0) {
                                     message = `Ein Administrator hat Ihnen ${tokenDiff} zusätzliche Tokens zugeteilt. Neue Gesamtanzahl: ${newTokens}`;
                                     type = 'success';
@@ -762,13 +779,14 @@ const BenutzerBearbeiten: React.FC<BenutzerBearbeitenProps> = ({ user, open, onC
   );
 };
 
-export default BenutzerBearbeiten;
-
-// Debug: Anzahl der Benutzer direkt ausgeben
-if (typeof window !== 'undefined') {
-  fetch('/api/admin/dashboard-stats')
-    .then(r => r.json())
-    .then(debugUserCount => {
-      console.log('DEBUG: Benutzeranzahl laut API:', debugUserCount.userCount);
-    });
+// Hilfsfunktion für Datumsformatierung
+function formatDateDE(dateString: string): string {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '—';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
 }
+
+export default BenutzerBearbeiten;

@@ -1,15 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../auth/[...nextauth]';
-import { getTicketStats } from '@/admin/ticket-stats';
-import { Session } from "next-auth";
+import { authOptions } from '../auth/[...nextauth]';
+import { getTicketStats } from '../../../admin/ticket-stats';
 
 // API-Route für Ticket-Statistiken
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Sitzungsinformationen abrufen
-    const session = await getServerSession(req, res, authOptions) as Session | null;
-
+    const session = await getServerSession(req, res, authOptions);
+    
     // Statistiken abrufen mit der Hilfsfunktion
     const stats = await getTicketStats(session);
     

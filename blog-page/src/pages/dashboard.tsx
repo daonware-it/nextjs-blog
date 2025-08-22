@@ -1,11 +1,10 @@
 import React, { useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import styles from "./dashboard.module.css";
 import { useSession } from "next-auth/react";
-import type { Session } from "next-auth";
 
 // Google Fonts wie auf anderen Seiten laden
 function useGlobalFonts() {
@@ -24,7 +23,7 @@ function useGlobalFonts() {
 
 export default function DashboardPage() {
   useGlobalFonts();
-  const { data: session } = useSession() as { data: Session | null };
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [drafts, setDrafts] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -32,11 +31,11 @@ export default function DashboardPage() {
 
   // Zugriffsschutz: Nur eingeloggte Nutzer mit Rolle BLOGGER, MODERATOR oder ADMIN
   useEffect(() => {
-    if (session === null) return;
-    if (!["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
+    if (status === "loading") return;
+    if (!session?.user || !["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
       router.replace("/");
     }
-  }, [session, router]);
+  }, [session, status, router]);
 
   React.useEffect(() => {
     if (session?.user?.email) {
@@ -86,7 +85,7 @@ export default function DashboardPage() {
   }, [session?.user?.id]);
 
   // Zeige Ladezustand während die Session geprüft wird
-  if (session === null) {
+  if (status === "loading") {
     return (
       <>
         <Head>
@@ -104,7 +103,7 @@ export default function DashboardPage() {
   }
 
   // Zugriff verweigern, wenn der Benutzer keine der erforderlichen Rollen hat
-  if (!["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
+  if (!session?.user || !["BLOGGER", "MODERATOR", "ADMIN"].includes(session.user.role as string)) {
     return null; // Nichts rendern, da wir bereits zur Startseite weiterleiten
   }
 

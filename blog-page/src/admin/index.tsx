@@ -13,7 +13,7 @@ const AdminPage: React.FC = () => {
     if (status === "loading") return;
     const role = (session?.user as UserWithRole)?.role;
     if (!role || (role !== "ADMIN" && role !== "MODERATOR")) {
-      router.replace("/").catch(() => {});
+      router.replace("/");
     }
   }, [session, status, router]);
 

@@ -1,7 +1,14 @@
 import React from 'react';
 import Head from "next/head";
-import styles from '@/components/profile.module.css';
+import styles from "../components/profile.module.css";
 import { useSession, signOut } from "next-auth/react";
+import Image from 'next/image';
+import TwoFactorSetupDialog from "../components/TwoFactorSetupDialog";
+import Navbar from "../components/Navbar";
+import dynamic from "next/dynamic";
+const AvatarUpload = dynamic(() => import("../components/AvatarUpload"), { ssr: false });
+import Footer from "../components/Footer";
+
 
 interface ProfileCardProps {
   label: string;
@@ -27,15 +34,15 @@ function ProfileCard(props: ProfileCardProps) {
     </div>
   );
 }
-import Navbar from "@/components/Navbar";
-import dynamic from "next/dynamic";
-const AvatarUpload = dynamic(() => import("@/components/AvatarUpload"), { ssr: false });
-import Footer from "@/components/Footer";
-import Profile2FAActivate from "./profile/two-factor-activate";
-
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession({
+    required: false,
+    onUnauthenticated() {
+      // Optional: Umleitung zur Login-Seite, wenn nicht authentifiziert
+      // Stattdessen zeigen wir eine Nachricht im UI
+    }
+  });
   const user = session?.user as any;
   const [userPlan, setUserPlan] = React.useState<{ name: string; includedRequests: number; price: number; planIncludedRequests?: number; isActive?: boolean; usage?: { available: number; total: number; used: number } } | null>(null);
   const [tokenBlockStatus, setTokenBlockStatus] = React.useState<boolean | null>(null);
@@ -97,7 +104,7 @@ export default function ProfilePage() {
   }, [user?.email]);
 
   React.useEffect(() => {
-    if (user?.email) {
+    if (status === "authenticated" && user?.email) {
       const intervalId = setInterval(() => {
         refreshRequestsInfo().catch(console.error);
       }, 300000); // 5 Minuten = 300000ms
@@ -108,7 +115,7 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     async function fetchPlan() {
-      if (user?.email) {
+      if (status === "authenticated" && user?.email) {
         try {
           const timestamp = new Date().getTime();
           const res = await fetch(`/api/profile-plan-simple?t=${timestamp}`);
@@ -192,11 +199,20 @@ export default function ProfilePage() {
   const [userNewsletters, setUserNewsletters] = React.useState<number[]>([]);
   const [nlLoading, setNlLoading] = React.useState(false);
   const [nlMessage, setNlMessage] = React.useState<string | null>(null);
-  const [show2FAModal, setShow2FAModal] = React.useState(false);
+
+  // 2FA State
+  const [twoFactorEnabled, setTwoFactorEnabled] = React.useState<boolean>(false);
+  const [showTwoFAPasswordModal, setShowTwoFAPasswordModal] = React.useState(false);
+  const [twoFAPassword, setTwoFAPassword] = React.useState("");
+  const [twoFAMode, setTwoFAMode] = React.useState<'setup' | 'manage'>("setup");
+  const [show2FASetup, setShow2FASetup] = React.useState(false);
+  const [show2FAManage, setShow2FAManage] = React.useState(false);
+  const [showDisable2FAModal, setShowDisable2FAModal] = React.useState(false);
+  const [disable2faLoading, setDisable2faLoading] = React.useState(false);
 
   React.useEffect(() => {
     async function fetchAvatar() {
-      if (user?.email) {
+      if (status === "authenticated" && user?.email) {
         try {
           const timestamp = new Date().getTime();
           const res = await fetch(`/api/profile-avatar?email=${encodeURIComponent(user.email)}&t=${timestamp}`);
@@ -236,7 +252,7 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     async function fetchUserNewsletters() {
-      if (user?.email) {
+      if (status === "authenticated" && user?.email) {
         try {
           const timestamp = new Date().getTime();
           const res = await fetch(`/api/profile-newsletters?email=${encodeURIComponent(user.email)}&t=${timestamp}`);
@@ -255,6 +271,124 @@ export default function ProfilePage() {
     }
     if (showNewsletterModal) fetchUserNewsletters().catch(console.error);
   }, [user?.email, showNewsletterModal]);
+
+  React.useEffect(() => {
+    // 2FA-Status immer aus der API laden, nicht aus der Session
+    if (status === "authenticated" && user?.email) {
+      refreshUserData().catch(console.error);
+    }
+  }, [status, user?.email]);
+
+  // 2FA generieren (öffnet den Setup-Dialog)
+  const handleGenerate2FA = () => {
+    setShow2FASetup(true);
+  };
+
+  // 2FA deaktivieren
+  const handleDisable2FA = async () => {
+    setShowDisable2FAModal(true);
+  };
+
+  const confirmDisable2FA = async () => {
+    setDisable2faLoading(true);
+    try {
+      const res = await fetch("/api/auth/disable-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id })
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Ein unbekannter Fehler ist aufgetreten');
+      }
+      const data = await res.json();
+      if (data.success) {
+        setMessage("2FA wurde erfolgreich deaktiviert.");
+        setTwoFactorEnabled(false);
+        await refreshUserData();
+      } else {
+        setMessage("Fehler beim Deaktivieren: " + (data.error || 'Unbekannter Fehler'));
+      }
+    } catch (err: any) {
+      setMessage("Fehler beim Deaktivieren: " + err.message);
+    }
+    setDisable2faLoading(false);
+    setShowDisable2FAModal(false);
+  };
+
+  const refreshUserData = async () => {
+    if (!user?.email || status !== "authenticated") return;
+    try {
+      const res = await fetch(`/api/profile-info?email=${encodeURIComponent(user.email)}&t=${new Date().getTime()}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API-Fehler:", errorText);
+        throw new Error(errorText);
+      }
+      const data = await res.json();
+      console.log('API twoFactorEnabled:', data.twoFactorEnabled);
+      // Aktualisieren des 2FA-Status aus der API-Antwort
+      if (typeof data.twoFactorEnabled !== "undefined") {
+        setTwoFactorEnabled(data.twoFactorEnabled);
+      } else {
+        setTwoFactorEnabled(user?.twoFactorEnabled ?? false);
+      }
+    } catch (err: any) {
+      console.error("Fehler beim Aktualisieren der Benutzerdaten:", err.message);
+    }
+  };
+
+  const [isTokenStatusRefreshing, setIsTokenStatusRefreshing] = React.useState(false);
+
+  const handleTokenStatusRefresh = async () => {
+    if (isTokenStatusRefreshing) return;
+    setIsTokenStatusRefreshing(true);
+    try {
+      const res = await fetch("/api/profile-token-status-simple", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setTokenBlockStatus(data.isBlocked);
+      await refreshUserData();
+    } catch (err: any) {
+      console.error("Fehler beim Aktualisieren des Token-Status:", err.message);
+    }
+    setIsTokenStatusRefreshing(false);
+  };
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      handleTokenStatusRefresh().catch(console.error);
+    }, 60000); // 1 Minute
+    return () => clearInterval(interval);
+  }, []);
+
+  const [avatarUploadInProgress, setAvatarUploadInProgress] = React.useState(false);
+
+  const handleAvatarUpload = async (file: File) => {
+    setAvatarUploadInProgress(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/profile-avatar-upload", {
+        method: "POST",
+        body: formData
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setAvatarUrl(data.avatarUrl);
+      setMessage("Avatar erfolgreich aktualisiert.");
+      await refreshUserData();
+    } catch (err: any) {
+      setMessage("Fehler beim Hochladen des Avatars: " + err.message);
+    }
+    setAvatarUploadInProgress(false);
+  };
 
   function formatDate(dateString?: string) {
     if (!dateString) return "-";
@@ -295,6 +429,12 @@ export default function ProfilePage() {
     setLoading(false);
   }
 
+  // Funktion zum Öffnen des Passwort-Modals für 2FA
+  const openTwoFAPasswordModal = (mode: 'setup' | 'manage') => {
+    setTwoFAMode(mode);
+    setShowTwoFAPasswordModal(true);
+  };
+
   if (status === "loading") {
     return (
       <div className={styles.profileContainer}>
@@ -331,7 +471,7 @@ export default function ProfilePage() {
             {avatarUrl ? (
               <AvatarUpload
                 avatarUrl={avatarUrl}
-                onUpload={() => {}}
+                onUpload={handleAvatarUpload}
               />
             ) : (
               <div style={{
@@ -342,14 +482,12 @@ export default function ProfilePage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 36,
+                fontSize: 32,
                 color: '#888',
-                marginRight: 16
               }}>
-                <span role="img" aria-label="Avatar">👤</span>
+                <span>👤</span>
               </div>
             )}
-            <h1 className={styles.profileTitle}>Mein Profil</h1>
           </div>
           <p className={styles.profileDesc}>
             Hier findest du deine persönlichen Daten, Einstellungen und Aktivitäten.
@@ -358,6 +496,7 @@ export default function ProfilePage() {
             <div className={styles.profileMessage} style={{ color: message.includes("erfolgreich") ? "#388e3c" : "#d32f2f" }}>{message}</div>
           )}
           <div className={styles.profileCards}>
+            {/* KI-Anfragen und Token-Status ganz oben */}
             <ProfileCard
               label="KI-Anfragen (Verfügbar)"
               value={
@@ -482,6 +621,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+            {/* Abo-Plan und Benutzername */}
             <ProfileCard
               label="Abo-Plan"
               value={<span>{userPlan ? `${userPlan.name} (${userPlan.planIncludedRequests} Anfragen/Monat)` : "-"}</span>}
@@ -490,70 +630,92 @@ export default function ProfilePage() {
             />
             <ProfileCard
               label="Benutzername"
-              value={<span>{user?.username || user?.name || "-"}</span>}
+              value={user?.username || "-"}
               color="#1976d2"
               icon="👤"
-              action={editField !== "username" ? () => handleEdit("username") : undefined}
+              action={() => handleEdit("username")}
             />
+            {/* E-Mail und Rolle */}
             <ProfileCard
               label="E-Mail"
-              value={<span>{user?.email || "-"}</span>}
-              color="#388e3c"
+              value={user?.email || "-"}
+              color="#1976d2"
               icon="✉️"
-              action={editField !== "email" ? () => handleEdit("email") : undefined}
+              action={() => handleEdit("email")}
             />
-          <ProfileCard label="Rolle" value={user?.role || "-"} color="#8e24aa" icon="⭐" />
-          <ProfileCard label="Mitglied seit" value={formatDate(user?.createdAt)} color="#444" icon="📅" />
-          <ProfileCard
-            label="Passwort"
-            value={<span>••••••••</span>}
-            color="#d32f2f"
-            icon="🔒"
-            action={() => setShowPasswordModal(true)}
-          />
-          <ProfileCard
-            label="Newsletter"
-            value={<span>{userNewsletters.length > 0 ? `${userNewsletters.length} abonniert` : "Keine abonniert"}</span>}
-            color="#1976d2"
-            icon="📰"
-            action={() => setShowNewsletterModal(true)}
-          />
-          <ProfileCard
-            label="2FA (Zwei-Faktor)"
-            value={<span>{user?.is2FAEnabled ? "Aktiviert" : "Nicht aktiviert"}</span>}
-            color={user?.is2FAEnabled ? "#388e3c" : "#d32f2f"}
-            icon="🔑"
-            action={() => setShow2FAModal(true)}
-          />
+            <ProfileCard
+              label="Rolle"
+              value={user?.role || "-"}
+              color="#1976d2"
+              icon="🛡️"
+            />
+            {/* Mitglied seit und Passwort */}
+            <ProfileCard
+              label="Mitglied seit"
+              value={formatDate(user?.createdAt)}
+              color="#1976d2"
+              icon="📅"
+            />
+            <ProfileCard
+              label="Passwort"
+              value={"********"}
+              color="#1976d2"
+              icon="🔒"
+              action={() => setShowPasswordModal(true)}
+            />
+            {/* Newsletter und 2FA */}
+            <div className={styles.profileCard}>
+              <h3 style={{ marginBottom: 8 }}>Newsletter</h3>
+              <div>
+                {allNewsletters.length === 0 ? (
+                  <span>Keine Newsletter verfügbar.</span>
+                ) : (
+                  allNewsletters.map(nl => (
+                    <div key={nl.id} style={{ marginBottom: 6 }}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={userNewsletters.includes(nl.id)}
+                          onChange={async (e) => {
+                            setNlLoading(true);
+                            try {
+                              const res = await fetch("/api/profile-newsletter-update", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ newsletterId: nl.id, subscribe: e.target.checked })
+                              });
+                              if (!res.ok) throw new Error(await res.text());
+                              setNlMessage("Newsletter-Einstellungen aktualisiert.");
+                              setUserNewsletters(prev => e.target.checked ? [...prev, nl.id] : prev.filter(id => id !== nl.id));
+                            } catch (err: any) {
+                              setNlMessage("Fehler: " + err.message);
+                            }
+                            setNlLoading(false);
+                          }}
+                          disabled={nlLoading}
+                        /> {nl.name}
+                      </label>
+                    </div>
+                  ))
+                )}
+                {nlMessage && <div style={{ color: nlMessage.includes("Fehler") ? "#d32f2f" : "#388e3c", marginTop: 8 }}>{nlMessage}</div>}
+              </div>
+            </div>
+            <ProfileCard
+              label="Zwei-Faktor-Authentifizierung"
+              value={twoFactorEnabled ? "Aktiv" : "Inaktiv"}
+              color={twoFactorEnabled ? "#388e3c" : "#d32f2f"}
+              icon="🔐"
+              action={twoFactorEnabled ? handleDisable2FA : handleGenerate2FA}
+            />
           </div>
-        <div style={{ marginTop: 40, textAlign: "center" }}>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className={styles.profileButton}
-            style={{
-              background: "linear-gradient(90deg,#d32f2f 60%,#ff7043 100%)",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 18,
-              boxShadow: "0 2px 12px rgba(211,47,47,0.12)",
-              transition: "background 0.2s",
-              padding: "14px 36px",
-              borderRadius: 12,
-              letterSpacing: "0.5px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10
-            }}
-          >
-            <span style={{ fontSize: 22, marginRight: 6 }}>🗑️</span>
-            Konto löschen
-          </button>
-        </div>
         </main>
         <Footer />
-        {editField && (
-          <div className={styles.profileModalOverlay}>
-            <div className={styles.profileModal}>
+      </div>
+      {/* Modale außerhalb des Haupt-Containers */}
+      {editField && (
+        <div className={styles.profileModalOverlay}>
+          <div className={styles.profileModal}>
               <button
                 onClick={() => setEditField(null)}
                 style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 22, color: "#888", cursor: "pointer" }}
@@ -836,21 +998,90 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
-
-      </div>
-
-      {show2FAModal && (
-        <div className={styles.profileModalOverlay}>
-          <div className={styles.profileModal} style={{ minWidth: 340 }}>
-            <button
-              onClick={() => setShow2FAModal(false)}
-              style={{ position: "absolute", top: 18, right: 18, background: "none", border: "none", fontSize: 22, color: "#888", cursor: "pointer" }}
-              aria-label="Schließen"
-            >×</button>
-            <div style={{ fontWeight: 600, fontSize: 19, marginBottom: 6, color: "#2a3a4a" }}>
-              Zwei-Faktor-Authentifizierung (2FA)
+      {/* Passwort-Modal für 2FA */}
+      {showTwoFAPasswordModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>2FA: Passwort bestätigen</h2>
+            <input
+              type="password"
+              placeholder="Passwort eingeben"
+              value={twoFAPassword}
+              onChange={e => setTwoFAPassword(e.target.value)}
+              className={styles.inputField}
+              autoFocus
+            />
+            <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+              <button
+                className={styles.profileButton}
+                onClick={() => {
+                  setShowTwoFAPasswordModal(false);
+                  setTwoFAPassword("");
+                }}
+              >Abbrechen</button>
+              <button
+                className={styles.profileButton}
+                disabled={!twoFAPassword}
+                onClick={() => {
+                  setShowTwoFAPasswordModal(false);
+                  if (twoFAMode === "setup") setShow2FASetup(true);
+                  else setShow2FAManage(true);
+                }}
+              >Weiter</button>
             </div>
-            <Profile2FAActivate userId={user?.id} />
+          </div>
+        </div>
+      )}
+      {/* 2FA-Setup-Dialog als Komponente */}
+      {show2FASetup && (
+        <TwoFactorSetupDialog 
+          userId={user?.id} 
+          email={user?.email || ""}
+          password={twoFAPassword}
+          onClose={() => {
+            setShow2FASetup(false);
+            refreshUserData().catch(console.error);
+          }}
+          onSuccess={async () => {
+            await refreshUserData();
+            setTwoFactorEnabled(true);
+          }}
+          mode="setup"
+        />
+      )}
+      {show2FAManage && (
+        <TwoFactorSetupDialog
+          userId={user?.id}
+          email={user?.email || ""}
+          password={twoFAPassword}
+          mode="manage"
+          onClose={() => setShow2FAManage(false)}
+        />
+      )}
+      {/* 2FA-Deaktivierungs-Dialog */}
+      {showDisable2FAModal && (
+        <div className={styles.profileModalOverlay}>
+          <div className={styles.profileModal} style={{ minWidth: 340, position: 'relative', padding: 32 }}>
+            <span style={{ fontSize: 38, color: '#f44336', marginBottom: 12, display: 'block', textAlign: 'center' }}>⚠️</span>
+            <h2 style={{ textAlign: 'center', marginBottom: 10, color: '#f44336', fontWeight: 700 }}>Zwei-Faktor-Authentifizierung deaktivieren?</h2>
+            <p style={{ textAlign: 'center', color: '#555', marginBottom: 24 }}>
+              Möchtest du die Zwei-Faktor-Authentifizierung wirklich deaktivieren?<br />
+              <span style={{ color: '#f44336', fontWeight: 500 }}>Dies macht dein Konto weniger sicher.</span>
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 8 }}>
+              <button
+                onClick={confirmDisable2FA}
+                disabled={disable2faLoading}
+                className={styles.profileButton}
+                style={{ background: 'linear-gradient(90deg,#f44336 60%,#ff7961 100%)', color: '#fff', fontWeight: 600, fontSize: 16, cursor: disable2faLoading ? 'not-allowed' : 'pointer', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', transition: 'background 0.2s' }}
+              >Deaktivieren</button>
+              <button
+                onClick={() => setShowDisable2FAModal(false)}
+                disabled={disable2faLoading}
+                className={styles.profileButton}
+              >Abbrechen</button>
+            </div>
+            {disable2faLoading && <div style={{ textAlign: 'center', marginTop: 16, color: '#888' }}>Bitte warten...</div>}
           </div>
         </div>
       )}

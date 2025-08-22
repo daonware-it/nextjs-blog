@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from './auth/[...nextauth]';
-import { prisma } from 'lib/prisma';
-import { Session } from "next-auth";
+import { authOptions } from './auth/[...nextauth]';
+import prisma from '../../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -11,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Surrogate-Control', 'no-store');
   
   try {
-    const session = await getServerSession(req, res, authOptions) as Session | null;
+    const session = await getServerSession(req, res, authOptions);
     if (!session) {
       return res.status(401).json({ error: 'Nicht authentifiziert' });
     }
@@ -77,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     }
 
-    const email = (session!.user as any).email;
+    const email = (session.user as any).email;
     if (!email) {
       return res.status(200).json({ plan: defaultPlan });
     }

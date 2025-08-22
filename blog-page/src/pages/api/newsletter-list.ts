@@ -1,4 +1,10 @@
-export default async function handler(_req: import("next").NextApiRequest, res: import("next").NextApiResponse) {
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./auth/[...nextauth]";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export default async function handler(req, res) {
   // Cache-Header setzen, um sicherzustellen, dass keine Caching stattfindet
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');

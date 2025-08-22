@@ -1,5 +1,5 @@
 import { Session } from 'next-auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '../../lib/prisma';
 
 /**
  * Funktion zum Abrufen der Dashboard-Statistiken

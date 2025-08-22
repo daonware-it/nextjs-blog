@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getClientIp } from '@/lib/rateLimit';
 
 const prisma = new PrismaClient();
 
@@ -17,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   try {
     // IP-Adresse als Fallback für anonyme Likes (kann später durch UserId ersetzt werden)
-    const ip = getClientIp(req);
+    const ip = req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.socket.remoteAddress || "";
     // Einfache Duplikat-Prüfung: Ein Like pro IP pro Block (optional, kann entfernt werden)
     const existing = await prisma.blockDraftLike.findFirst({
       where: { blockDraftId: Number(blockDraftId), userId: Number(userId) },

@@ -1,63 +1,75 @@
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Navbar from '@/components/Navbar';
-import styles from '@/components/login.module.css';
-import { useRouter } from 'next/router';
+import React, { useState } from "react";
+import Head from "next/head";
+import styles from "../components/login.module.css";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { useRouter } from "next/router";
 
-export default function ResetPassword() {
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newPasswordRepeat, setNewPasswordRepeat] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+export default function ResetPasswordPage() {
   const router = useRouter();
+  const { token } = router.query;
+  const [password, setPassword] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [userId, setUserId] = useState("");
 
-  useEffect(() => {
-    if (router.query.email && typeof router.query.email === 'string') {
-      setEmail(router.query.email);
-    }
-  }, [router.query.email]);
-
-  // Passwortstärke wie bei Registrierung prüfen
-  function checkPasswordStrength(pw: string) {
-    if (pw.length < 12) return "Zu kurz";
-    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(pw)) return "Sehr stark";
-    if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pw)) return "Stark";
-    if (/^(?=.*[a-z])(?=.*\d).{8,}$/.test(pw)) return "Mittel";
-    return "Schwach";
-  }
-  const passwordStrength = checkPasswordStrength(newPassword);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (password.length < 12) {
+      setError("Das Passwort muss mindestens 12 Zeichen lang sein.");
+      return;
+    }
+    if (password !== passwordRepeat) {
+      setError("Die Passwörter stimmen nicht überein.");
+      return;
+    }
     setLoading(true);
-    setError('');
-    setSuccess('');
-    if (newPassword !== newPasswordRepeat) {
-      setError('Die Passwörter stimmen nicht überein.');
-      setLoading(false);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess("Passwort erfolgreich geändert. Du kannst dich jetzt anmelden.");
+      } else {
+        setError(data.error || "Fehler beim Zurücksetzen des Passworts.");
+      }
+    } catch {
+      setError("Serverfehler. Bitte versuche es später erneut.");
+    }
+    setLoading(false);
+  };
+
+  const handleRecoverySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (!userId || !recoveryCode) {
+      setError("Benutzer-ID und Recovery-Code erforderlich.");
       return;
     }
-    if (passwordStrength === "Zu kurz" || passwordStrength === "Schwach") {
-      setError("Das Passwort muss mindestens den Status 'Mittel' erreichen und mindestens 12 Zeichen lang sein.");
-      setLoading(false);
-      return;
-    }
-    const res = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code, newPassword }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setSuccess('Passwort erfolgreich zurückgesetzt! Du wirst zur Login-Seite weitergeleitet.');
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-    } else {
-      setError(data.error || 'Fehler beim Zurücksetzen des Passworts.');
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/use-recovery-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, recoveryCode }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSuccess("Recovery-Code erfolgreich verwendet. Prüfe dein E-Mail-Postfach.");
+      } else {
+        setError(data.error || "Fehler beim Verwenden des Recovery-Codes.");
+      }
+    } catch {
+      setError("Serverfehler. Bitte versuche es später erneut.");
     }
     setLoading(false);
   };
@@ -72,72 +84,73 @@ export default function ResetPassword() {
         <div className={styles.loginContainer}>
           <div className={styles.loginBox}>
             <h1 className={styles.heading}>Passwort zurücksetzen</h1>
-            <div className={styles.subtitle}>Gib deine E-Mail, den Reset-Code und ein neues Passwort ein.</div>
-            {error && (
-              <div className={styles.errorMessage}>{error}</div>
-            )}
-            {success && (
-              <div style={{ color: '#28a745', background: '#eafaf1', border: '1px solid #c3e6cb', borderRadius: 4, padding: '10px 15px', marginBottom: 20, fontSize: 15, textAlign: 'left', fontWeight: 500 }}>{success}</div>
-            )}
+            <div className={styles.subtitle}>Gib dein neues Passwort ein</div>
+            {error && <div className={styles.errorMessage}>{error}</div>}
+            {success && <div style={{ color: '#28a745', background: '#eafaf1', border: '1px solid #c3e6cb', borderRadius: 4, padding: '10px 15px', marginBottom: 20, fontSize: 15, textAlign: 'left', fontWeight: 500 }}>{success}</div>}
             <form onSubmit={handleSubmit}>
               <div className={styles.inputGroup}>
-                <label htmlFor="email" className={styles.inputLabel}>E-Mail</label>
+                <label htmlFor="password" className={styles.inputLabel}>Neues Passwort</label>
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="Deine E-Mail-Adresse"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className={styles.inputField}
-                />
-              </div>
-              <div className={styles.inputGroup}>
-                <label htmlFor="code" className={styles.inputLabel}>Reset-Code</label>
-                <input
-                  id="code"
-                  type="text"
-                  placeholder="Code aus der E-Mail"
-                  value={code}
-                  onChange={e => setCode(e.target.value)}
-                  required
-                  className={styles.inputField}
-                />
-              </div>
-              <div className={styles.inputGroup}>
-                <label htmlFor="newPassword" className={styles.inputLabel}>Neues Passwort</label>
-                <input
-                  id="newPassword"
+                  id="password"
                   type="password"
                   placeholder="Neues Passwort"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   required
                   className={styles.inputField}
                 />
-                <div style={{ marginTop: 6, fontSize: 14, color: passwordStrength === "Sehr stark" ? "#28a745" : passwordStrength === "Stark" ? "#007bff" : passwordStrength === "Mittel" ? "#ffc107" : "#dc3545" }}>
-                  Passwortstärke: {passwordStrength}
-                </div>
               </div>
               <div className={styles.inputGroup}>
-                <label htmlFor="newPasswordRepeat" className={styles.inputLabel}>Neues Passwort wiederholen</label>
+                <label htmlFor="passwordRepeat" className={styles.inputLabel}>Passwort wiederholen</label>
                 <input
-                  id="newPasswordRepeat"
+                  id="passwordRepeat"
                   type="password"
-                  placeholder="Neues Passwort wiederholen"
-                  value={newPasswordRepeat}
-                  onChange={e => setNewPasswordRepeat(e.target.value)}
+                  placeholder="Passwort wiederholen"
+                  value={passwordRepeat}
+                  onChange={e => setPasswordRepeat(e.target.value)}
                   required
                   className={styles.inputField}
                 />
               </div>
               <button type="submit" className={styles.loginButton} disabled={loading}>
-                {loading ? 'Wird geändert...' : 'Passwort zurücksetzen'}
+                {loading ? "Lädt..." : "Passwort ändern"}
               </button>
             </form>
+            <hr style={{ margin: '30px 0' }} />
+            <h2 style={{ fontSize: 18, marginBottom: 10 }}>Recovery-Code verwenden</h2>
+            <form onSubmit={handleRecoverySubmit}>
+              <input
+                type="text"
+                placeholder="Benutzer-ID"
+                value={userId}
+                onChange={e => setUserId(e.target.value)}
+                className={styles.input}
+                style={{ marginBottom: 10 }}
+              />
+              <input
+                type="text"
+                placeholder="Recovery-Code"
+                value={recoveryCode}
+                onChange={e => setRecoveryCode(e.target.value)}
+                className={styles.input}
+                style={{ marginBottom: 10 }}
+              />
+              <button type="submit" className={styles.loginButton} disabled={loading}>
+                Recovery-Code verwenden
+              </button>
+            </form>
+            <button
+              type="button"
+              className={styles.loginButton}
+              style={{ marginTop: 16, background: '#f5f5f5', color: '#007bff', border: '1px solid #007bff' }}
+              onClick={() => window.location.href = '/login'}
+            >
+              Zurück zur Login-Seite
+            </button>
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

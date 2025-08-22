@@ -5,6 +5,8 @@ import CodeBlock from "./CodeBlock";
 import { BLOCK_TYPES, BlockType, Block } from "./BlockTypes";
 import { getBlockEditComponent } from "./blockTypeConfig";
 import ImageBlockEdit from "./blocks/ImageBlockEdit";
+import dynamic from "next/dynamic";
+const GalleryBlock = dynamic(() => import("./blocks/GalleryBlock"), { ssr: false });
 import TableBlockWrapper from "./TableBlockWrapper";
 
 import BlockPreview from "./BlockPreview";
@@ -235,7 +237,7 @@ export default function BlockEditor({ value, onChange, userId, cacheKey = "block
   }, []);
 
   const handleDrop = useCallback(
-    () => {
+    (idx: number) => {
       if (dragIndex === null || dropIndex === null) return;
       if (dragIndex === dropIndex || dragIndex + 1 === dropIndex) {
         setDragIndex(null);
@@ -385,7 +387,8 @@ export default function BlockEditor({ value, onChange, userId, cacheKey = "block
           body: JSON.stringify({
             id: draftIdToUse,
             userId,
-            blocks: finalBlocks
+            blocks: finalBlocks,
+            status: "ENTWURF"
           }),
         });
       } catch (e) {
@@ -420,12 +423,14 @@ export default function BlockEditor({ value, onChange, userId, cacheKey = "block
       <div className={styles.blockEditorWrapper} onDragOver={handleDragOver}>
         <div className={styles.previewToggle}>
           <button
+            type="button"
             className={`${styles.toggleBtn} ${!showPreview ? styles.active : ""}`}
             onClick={handleEditorClick}
           >
             Editor
           </button>
           <button
+            type="button"
             className={`${styles.toggleBtn} ${showPreview ? styles.active : ""}`}
             onClick={handlePreviewClick}
           >
@@ -476,7 +481,7 @@ export default function BlockEditor({ value, onChange, userId, cacheKey = "block
                   }}
                   onDrop={e => {
                     e.preventDefault();
-                    handleDrop();
+                    handleDrop(idx);
                   }}
                   style={{ position: 'relative' }}
                 >

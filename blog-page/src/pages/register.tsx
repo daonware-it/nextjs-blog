@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import Head from "next/head";
 import disposableEmailDomains from "./disposableEmailDomains.json";
-import styles from '@/components/login.module.css';
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import styles from "../components/login.module.css";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function RegisterPage() {
   const { status } = useSession();
-  const router = useRouter();
   React.useEffect(() => {
     if (status === "authenticated") {
       window.location.href = "/";
@@ -31,6 +29,10 @@ export default function RegisterPage() {
   const errorRef = React.useRef<HTMLDivElement>(null);
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState("");
+  const [verificationSuccess, setVerificationSuccess] = useState("");
 
   const checkPasswordStrength = (pw: string) => {
     if (pw.length < 12) return "Zu kurz";
@@ -90,11 +92,16 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSuccess("Registrierung erfolgreich! Bitte prüfe deine E-Mail und gib den Code zur Verifizierung ein.");
-        setUsername(""); setName(""); setFullName(""); setEmail(""); setPassword(""); setPasswordRepeat(""); setAgb(false); setDatenschutz(false); setCaptchaToken("");
-        setTimeout(() => {
-          router.push("/verify-email");
-        }, 1500);
+        setSuccess("Registrierung erfolgreich! Bitte prüfe deine E-Mails und gib den Verifizierungscode ein.");
+        setShowVerification(true);
+        // Verifizierungscode verschicken
+        await fetch("/api/auth/verify-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        // Felder leeren
+        setUsername(""); setName(""); setFullName(""); setPassword(""); setPasswordRepeat(""); setAgb(false); setDatenschutz(false); setCaptchaToken("");
       } else {
         setError(data.error || "Fehler bei der Registrierung.");
         setTimeout(() => {
@@ -109,6 +116,29 @@ export default function RegisterPage() {
     }
     setLoading(false);
   };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerificationError("");
+    setVerificationSuccess("");
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setVerificationSuccess("E-Mail erfolgreich verifiziert! Du kannst dich jetzt anmelden.");
+        setShowVerification(false);
+      } else {
+        setVerificationError(data.error || "Verifizierung fehlgeschlagen.");
+      }
+    } catch {
+      setVerificationError("Serverfehler. Bitte versuche es später erneut.");
+    }
+  };
+
   return (
     <>
       <Head>
@@ -226,6 +256,31 @@ export default function RegisterPage() {
                 {loading ? "Lädt..." : "Registrieren"}
               </button>
             </form>
+            {showVerification && (
+              <form onSubmit={handleVerifyCode} style={{ marginTop: 20 }}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="verificationCode" className={styles.inputLabel}>Verifizierungscode</label>
+                  <input
+                    id="verificationCode"
+                    type="text"
+                    placeholder="Code aus der E-Mail"
+                    value={verificationCode}
+                    onChange={e => setVerificationCode(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleVerifyCode(e);
+                      }
+                    }}
+                    required
+                    className={styles.inputField}
+                  />
+                </div>
+                {verificationError && <div className={styles.errorMessage}>{verificationError}</div>}
+                {verificationSuccess && <div style={{ color: '#28a745', background: '#eafaf1', border: '1px solid #c3e6cb', borderRadius: 4, padding: '10px 15px', marginBottom: 20, fontSize: 15, textAlign: 'left', fontWeight: 500 }}>{verificationSuccess}</div>}
+                <button type="submit" className={styles.loginButton}>Verifizieren</button>
+              </form>
+            )}
             <button
               type="button"
               className={styles.loginButton}

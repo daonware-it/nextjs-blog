@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function ImpressumPage() {
   return (
@@ -11,32 +11,32 @@ export default function ImpressumPage() {
       </Head>
       <Navbar />
       <main style={{flex: 1, maxWidth: 800, margin: "60px auto", padding: 32, background: "#fff", borderRadius: 12, boxShadow: "0 2px 16px rgba(0,0,0,0.06)"}}>
-        <h1 style={{fontSize: 32, marginBottom: 24, color: "#222"}}>Impressum</h1>
+        <h1 style={{fontSize: 32, marginBottom: 24, color: "#222"}}>Dummy Überschrift</h1>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Verantwortlich</h2>
-          <p>Oliver Guttmann<br />Einzelunternehmen<br />Kolberger Str. 1<br />26655 Westerstede</p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 1</h2>
+          <p>Lorem ipsum dolor sit amet.<br />Consectetur adipiscing elit.<br />Dummy Straße 1<br />12345 Dummy-Stadt</p>
         </section>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Kontakt</h2>
-          <p>Telefon: 015141981732<br />E-Mail: <a href="mailto:o.guttmann@daonware.de">o.guttmann@daonware.de</a></p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 2</h2>
+          <p>Telefon: 0123456789<br />E-Mail: <a href="mailto:dummy@example.com">dummy@example.com</a></p>
         </section>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Redaktionell verantwortlich</h2>
-          <p>Oliver Guttmann</p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 3</h2>
+          <p>Lorem Ipsum Dummy</p>
         </section>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Verbraucherstreitbeilegung / Universalschlichtungsstelle</h2>
-          <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 4</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis euismod urna eu tincidunt.</p>
         </section>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Zentrale Kontaktstelle nach dem Digital Services Act – DSA</h2>
-          <p>Unsere zentrale Kontaktstelle für Nutzer und Behörden nach Art. 11, 12 DSA erreichen Sie wie folgt:</p>
-          <p>E-Mail: <a href="mailto:O.Guttmann@daonware.de">O.Guttmann@daonware.de</a><br />Telefon: 015141981732</p>
-          <p>Die für den Kontakt zur Verfügung stehenden Sprachen sind: Deutsch, Englisch.</p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 5</h2>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p>E-Mail: <a href="mailto:dummy@example.com">dummy@example.com</a><br />Telefon: 0123456789</p>
+          <p>Sprache: Dummy</p>
         </section>
         <section style={{marginBottom: 24}}>
-          <h2 style={{fontSize: 20, marginBottom: 8}}>Quelle</h2>
-          <p><a href="https://www.e-recht24.de/impressum-generator.html" target="_blank" rel="noopener noreferrer">e-recht24 Impressum Generator</a></p>
+          <h2 style={{fontSize: 20, marginBottom: 8}}>Dummy Abschnitt 6</h2>
+          <p><a href="#" target="_blank" rel="noopener noreferrer">Dummy Link</a></p>
         </section>
       </main>
       <Footer />

@@ -1,11 +1,12 @@
 import React from "react";
 
 interface ImageToolbarProps {
+  blockData: string;
   onFormat: (newValue: string) => void;
   inputId: string;
 }
 
-export const ImageToolbar: React.FC<ImageToolbarProps> = ({ onFormat, inputId }) => {
+export const ImageToolbar: React.FC<ImageToolbarProps> = ({ blockData, onFormat, inputId }) => {
   // Beispiel: Bild-URL validieren oder manipulieren
   const handlePasteDemo = () => {
     onFormat("https://via.placeholder.com/400x200.png?text=Demo+Bild");

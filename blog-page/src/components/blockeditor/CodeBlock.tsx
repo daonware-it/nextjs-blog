@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './CodeBlock.module.css';
-import { highlightCodeServer } from '@/lib/highlightServer';
+import { highlightCodeServer } from '../../lib/highlightServer';
 
 interface CodeBlockProps {
   code: string;

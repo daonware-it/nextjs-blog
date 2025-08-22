@@ -1,20 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import authOptions from '../auth/[...nextauth]';
-
-interface Session {
-  user: {
-    id: number;
-    email: string;
-    role: string;
-  };
-  expires: string;
-}
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const session = await getServerSession(req, res, authOptions) as Session | null;
-
+    const session = await getServerSession(req, res, authOptions);
+    
     if (!session) {
       return res.status(401).json({ 
         error: 'Nicht autorisiert - Keine Sitzung gefunden',

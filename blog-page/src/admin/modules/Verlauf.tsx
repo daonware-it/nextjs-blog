@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styles from './admin.module.css';
+import styles from '../admin.module.css';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 
@@ -52,9 +52,7 @@ const Verlauf: React.FC = () => {
   const [filterToDate, setFilterToDate] = useState<string>('');
 
   useEffect(() => {
-    (async () => {
-      await fetchAuditLogs(1);
-    })();
+    fetchAuditLogs(1);
   }, []);
 
   const fetchAuditLogs = async (page: number) => {
@@ -81,9 +79,7 @@ const Verlauf: React.FC = () => {
       
       const response = await fetch(url);
       if (!response.ok) {
-        setError('Fehler beim Abrufen der Audit-Logs');
-        setLoading(false);
-        return;
+        throw new Error('Fehler beim Abrufen der Audit-Logs');
       }
       
       const data: AuditLogResponse = await response.json();
@@ -98,7 +94,7 @@ const Verlauf: React.FC = () => {
   };
 
   const handleFilter = () => {
-    fetchAuditLogs(1).catch((err) => setError(err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    fetchAuditLogs(1);
   };
 
   const handleResetFilters = () => {
@@ -106,14 +102,13 @@ const Verlauf: React.FC = () => {
     setFilterUserId('');
     setFilterFromDate('');
     setFilterToDate('');
-    setTimeout(() => {
-      fetchAuditLogs(1).catch((err) => setError(err instanceof Error ? err.message : 'Unbekannter Fehler'));
-    }, 0);
+    // Zeitverzögerung, um sicherzustellen, dass die State-Updates abgeschlossen sind
+    setTimeout(() => fetchAuditLogs(1), 0);
   };
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
-      fetchAuditLogs(newPage).catch((err) => setError(err instanceof Error ? err.message : 'Unbekannter Fehler'));
+      fetchAuditLogs(newPage);
     }
   };
 
