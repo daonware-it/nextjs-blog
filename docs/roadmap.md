@@ -21,18 +21,13 @@ In diesem Dokument findest du eine Übersicht über geplante Funktionen, bekannt
 
 | Titel | Priorität | Status |
 |-------|-----------|--------|
-| Abo-Status Leiste fehlerhaft | 🔴 Kritisch | Aktiv  |
 | Sicherheitsfunktionen | 🔴 Kritisch | Offen  |
-| 2-FA | 🟠 Hoch | Aktiv  |
 | Beitrag erstellen | 🟠 Hoch | Offen  |
 | Admin-Interface | 🟠 Hoch | Offen  |
-| Datenbanksicherung | 🟠 Hoch | Aktiv  |
 | KI-Vorschläge beim Schreiben von Beiträgen | 🔵 Mittel | Offen  |
 | Rollenverwaltung über das Admin-Panel | 🔵 Mittel | Offen  |
 | Erweiterte Kommentarmoderation | 🔵 Mittel | Offen  |
 | Markdown-Editor mit Live-Vorschau | 🔵 Mittel | Offen  |
-| Beitrag-Entwürfe speichern | 🔵 Mittel | Aktiv  |
-| Passwort-Vergessen hinzufügen | 🔵 Mittel | Aktiv  |
 | Kontakformular | 🔵 Mittel | Offen  |
 | Cookie-Einstellungen | 🔵 Mittel | Offen  |
 | CSS für Smartphone optimieren | 🔵 Mittel | Offen  |
@@ -75,7 +70,6 @@ In diesem Dokument findest du eine Übersicht über geplante Funktionen, bekannt
 - Kein Live-Reload für Log-Dateien im Admin-Panel
 - Deployment auf Windows-Server benötigt zusätzliche Konfiguration
 - Keine E-Mail-Benachrichtigung bei Kommentaren oder Tickets
-- Passwort-Vergessen-Funktion fehlt
 - Kontaktformular nicht vorhanden
 - Cookie-Einstellungen unvollständig
 - Mobile CSS-Optimierung offen
